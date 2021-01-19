@@ -1,7 +1,9 @@
-import { find, isArray, get, first, map, intersection, isEqual, isEmpty } from "lodash";
+import { find, isArray, map, intersection, isEqual } from "lodash";
 import React from "react";
 import PropTypes from "prop-types";
-import SelectWithVirtualScroll from "@/components/SelectWithVirtualScroll";
+import Select from "antd/lib/select";
+
+const { Option } = Select;
 
 export default class QueryBasedParameterInput extends React.Component {
   static propTypes = {
@@ -54,7 +56,7 @@ export default class QueryBasedParameterInput extends React.Component {
       return validValues;
     }
     const found = find(options, option => option.value === this.props.value) !== undefined;
-    value = found ? value : get(first(options), "value");
+    value = found ? value : options[0].value;
     this.setState({ value });
     return value;
   }
@@ -77,23 +79,29 @@ export default class QueryBasedParameterInput extends React.Component {
   }
 
   render() {
-    const { className, mode, onSelect, queryId, value, ...otherProps } = this.props;
+    const { className, value, mode, onSelect, ...otherProps } = this.props;
     const { loading, options } = this.state;
     return (
       <span>
-        <SelectWithVirtualScroll
+        <Select
           className={className}
-          disabled={loading}
+          disabled={loading || options.length === 0}
           loading={loading}
           mode={mode}
           value={this.state.value}
           onChange={onSelect}
-          options={map(options, ({ value, name }) => ({ label: String(name), value }))}
+          dropdownMatchSelectWidth={false}
+          optionFilterProp="children"
           showSearch
           showArrow
-          notFoundContent={isEmpty(options) ? "No options available" : null}
-          {...otherProps}
-        />
+          notFoundContent={null}
+          {...otherProps}>
+          {options.map(option => (
+            <Option value={option.value} key={option.value}>
+              {option.name}
+            </Option>
+          ))}
+        </Select>
       </span>
     );
   }

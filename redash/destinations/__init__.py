@@ -41,7 +41,6 @@ class BaseDestination(object):
             "type": cls.type(),
             "icon": cls.icon(),
             "configuration_schema": cls.configuration_schema(),
-            **({ "deprecated": True } if cls.deprecated else {})
         }
 
 

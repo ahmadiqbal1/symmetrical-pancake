@@ -142,10 +142,11 @@ class Hive(BaseSQLQueryRunner):
             data = {"columns": columns, "rows": rows}
             json_data = json_dumps(data)
             error = None
-        except (KeyboardInterrupt, JobTimeoutException):
+        except KeyboardInterrupt:
             if connection:
                 connection.cancel()
-            raise
+            error = "Query cancelled by user."
+            json_data = None
         except DatabaseError as e:
             try:
                 error = e.args[0].status.errorMessage
@@ -222,8 +223,8 @@ class HiveHttp(Hive):
         username = self.configuration.get("username", "")
         password = self.configuration.get("http_password", "")
         if username or password:
-            auth = base64.b64encode(username.encode("ascii") + b":" + password.encode("ascii"))
-            transport.setCustomHeaders({"Authorization": "Basic " + auth.decode()})
+            auth = base64.b64encode(username + ":" + password)
+            transport.setCustomHeaders({"Authorization": "Basic " + auth})
 
         # create connection
         connection = hive.connect(thrift_transport=transport)

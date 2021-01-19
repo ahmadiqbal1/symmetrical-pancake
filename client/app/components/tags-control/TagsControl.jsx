@@ -11,8 +11,6 @@ export class TagsControl extends React.Component {
     getAvailableTags: PropTypes.func,
     onEdit: PropTypes.func,
     className: PropTypes.string,
-    tagsExtra: PropTypes.node,
-    tagSeparator: PropTypes.node,
     children: PropTypes.node,
   };
 
@@ -22,23 +20,19 @@ export class TagsControl extends React.Component {
     getAvailableTags: () => Promise.resolve([]),
     onEdit: () => {},
     className: "",
-    tagsExtra: null,
-    tagSeparator: null,
     children: null,
   };
 
   editTags = (tags, getAvailableTags) => {
-    EditTagsDialog.showModal({ tags, getAvailableTags }).onClose(this.props.onEdit);
+    EditTagsDialog.showModal({ tags, getAvailableTags })
+      .result.then(this.props.onEdit)
+      .catch(() => {}); // ignore dismiss
   };
 
   renderEditButton() {
     const tags = map(this.props.tags, trim);
     return (
-      <a
-        className="label label-tag hidden-xs"
-        role="none"
-        onClick={() => this.editTags(tags, this.props.getAvailableTags)}
-        data-test="EditTagsButton">
+      <a className="label label-tag" role="none" onClick={() => this.editTags(tags, this.props.getAvailableTags)}>
         {tags.length === 0 && (
           <React.Fragment>
             <i className="zmdi zmdi-plus m-r-5" />
@@ -51,20 +45,15 @@ export class TagsControl extends React.Component {
   }
 
   render() {
-    const { tags, tagSeparator } = this.props;
     return (
-      <div className={"tags-control " + this.props.className} data-test="TagsControl">
+      <div className={"tags-control " + this.props.className}>
         {this.props.children}
-        {map(tags, (tag, i) => (
-          <React.Fragment key={tag}>
-            {tagSeparator && i > 0 && <span className="tag-separator">{tagSeparator}</span>}
-            <span className="label label-tag" key={tag} title={tag} data-test="TagLabel">
-              {tag}
-            </span>
-          </React.Fragment>
+        {map(this.props.tags, tag => (
+          <span className="label label-tag" key={tag} title={tag}>
+            {tag}
+          </span>
         ))}
         {this.props.canEdit && this.renderEditButton()}
-        {this.props.tagsExtra}
       </div>
     );
   }

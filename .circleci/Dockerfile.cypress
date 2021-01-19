@@ -1,12 +1,12 @@
-FROM cypress/browsers:node14.0.0-chrome84
+FROM cypress/browsers:chrome67
 
 ENV APP /usr/src/app
 WORKDIR $APP
 
-COPY package.json package-lock.json $APP/
-COPY viz-lib $APP/viz-lib
-RUN npm ci > /dev/null
+COPY package.json $APP/package.json
+RUN npm run cypress:install > /dev/null
 
-COPY . $APP
+COPY client/cypress $APP/client/cypress
+COPY cypress.json $APP/cypress.json
 
 RUN ./node_modules/.bin/cypress verify

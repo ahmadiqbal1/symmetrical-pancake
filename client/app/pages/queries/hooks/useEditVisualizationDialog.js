@@ -1,10 +1,10 @@
-import { extend, filter, find } from "lodash";
-import { useCallback } from "react";
-import EditVisualizationDialog from "@/components/visualizations/EditVisualizationDialog";
-import useImmutableCallback from "@/lib/hooks/useImmutableCallback";
+import { isFunction, extend, filter, find } from "lodash";
+import { useCallback, useRef } from "react";
+import EditVisualizationDialog from "@/visualizations/components/EditVisualizationDialog";
 
 export default function useEditVisualizationDialog(query, queryResult, onChange) {
-  const handleChange = useImmutableCallback(onChange);
+  const onChangeRef = useRef();
+  onChangeRef.current = isFunction(onChange) ? onChange : () => {};
 
   return useCallback(
     (visualizationId = null) => {
@@ -13,14 +13,16 @@ export default function useEditVisualizationDialog(query, queryResult, onChange)
         query,
         visualization,
         queryResult,
-      }).onClose(updatedVisualization => {
-        const filteredVisualizations = filter(query.visualizations, v => v.id !== updatedVisualization.id);
-        handleChange(
-          extend(query.clone(), { visualizations: [...filteredVisualizations, updatedVisualization] }),
-          updatedVisualization
-        );
-      });
+      })
+        .result.then(updatedVisualization => {
+          const filteredVisualizations = filter(query.visualizations, v => v.id !== updatedVisualization.id);
+          onChangeRef.current(
+            extend(query.clone(), { visualizations: [...filteredVisualizations, updatedVisualization] }),
+            updatedVisualization
+          );
+        })
+        .catch(() => {}); // ignore dismiss
     },
-    [query, queryResult, handleChange]
+    [query, queryResult]
   );
 }

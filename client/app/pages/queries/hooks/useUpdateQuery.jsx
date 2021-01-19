@@ -1,10 +1,8 @@
-import { isNil, isObject, extend, keys, map, omit, pick, uniq, get } from "lodash";
-import React, { useCallback } from "react";
+import { isNil, isObject, isFunction, extend, keys, map, omit, pick, uniq, get } from "lodash";
+import React, { useRef, useCallback } from "react";
 import Modal from "antd/lib/modal";
 import { Query } from "@/services/query";
 import notification from "@/services/notification";
-import useImmutableCallback from "@/lib/hooks/useImmutableCallback";
-import { policy } from "@/services/policy";
 
 class SaveQueryError extends Error {
   constructor(message, detailedMessage = null) {
@@ -72,14 +70,15 @@ function doSaveQuery(data, { canOverwrite = false } = {}) {
 }
 
 export default function useUpdateQuery(query, onChange) {
-  const handleChange = useImmutableCallback(onChange);
+  const onChangeRef = useRef();
+  onChangeRef.current = isFunction(onChange) ? onChange : () => {};
 
   return useCallback(
     (data = null, { successMessage = "Query saved" } = {}) => {
       if (isObject(data)) {
         // Don't save new query with partial data
         if (query.isNew()) {
-          handleChange(extend(query.clone(), data));
+          onChangeRef.current(extend(query.clone(), data));
           return;
         }
         data = { ...data, id: query.id, version: query.version };
@@ -95,16 +94,15 @@ export default function useUpdateQuery(query, onChange) {
           "options",
           "latest_query_data_id",
           "is_draft",
-          "tags",
         ]);
       }
 
-      return doSaveQuery(data, { canOverwrite: policy.canEdit(query) })
+      return doSaveQuery(data, { canOverwrite: query.can_edit })
         .then(updatedQuery => {
           if (!isNil(successMessage)) {
             notification.success(successMessage);
           }
-          handleChange(
+          onChangeRef.current(
             extend(
               query.clone(),
               // if server returned completely new object (currently possible only when saving new query) -
@@ -121,6 +119,6 @@ export default function useUpdateQuery(query, onChange) {
           notification.error(error.message, error.detailedMessage, notificationOptions);
         });
     },
-    [query, handleChange]
+    [query]
   );
 }

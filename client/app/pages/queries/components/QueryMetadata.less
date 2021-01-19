@@ -25,10 +25,6 @@
     }
   }
 
-  .query-metadata-space {
-    display: none;
-  }
-
   &.query-metadata-table {
     padding: 15px;
     border-top: 1px solid #efefef;
@@ -54,7 +50,7 @@
     margin: 0 -5px;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
 
     @media (max-width: 500px) {
@@ -65,10 +61,10 @@
     }
 
     @media (min-width: 1000px) {
+      align-items: flex-start;
       justify-content: flex-start;
 
-      .query-metadata-space {
-        display: block;
+      .query-metadata-item:last-child {
         flex: 1 1 auto;
         text-align: right;
       }

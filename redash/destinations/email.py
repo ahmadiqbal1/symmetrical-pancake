@@ -46,6 +46,7 @@ class Email(BaseDestination):
         logging.debug("Notifying: %s", recipients)
 
         try:
+            alert_name = alert.name.encode("utf-8", "ignore")
             state = new_state.upper()
             if alert.custom_subject:
                 subject = alert.custom_subject
@@ -53,7 +54,7 @@ class Email(BaseDestination):
                 subject_template = options.get(
                     "subject_template", settings.ALERTS_DEFAULT_MAIL_SUBJECT_TEMPLATE
                 )
-                subject = subject_template.format(alert_name=alert.name, state=state)
+                subject = subject_template.format(alert_name=alert_name, state=state)
 
             message = Message(recipients=recipients, subject=subject, html=html)
             mail.send(message)

@@ -1,14 +1,12 @@
 import { omit } from "lodash";
 import React from "react";
+import { axios } from "@/services/axios";
 import PropTypes from "prop-types";
 
 import routeWithUserSession from "@/components/ApplicationArea/routeWithUserSession";
 import Layout from "@/components/admin/Layout";
 import * as StatusBlock from "@/components/admin/StatusBlock";
-
-import { axios } from "@/services/axios";
 import recordEvent from "@/services/recordEvent";
-import routes from "@/services/routes";
 
 import "./system-status.less";
 
@@ -82,11 +80,8 @@ class SystemStatus extends React.Component {
   }
 }
 
-routes.register(
-  "Admin.SystemStatus",
-  routeWithUserSession({
-    path: "/admin/status",
-    title: "System Status",
-    render: pageProps => <SystemStatus {...pageProps} />,
-  })
-);
+export default routeWithUserSession({
+  path: "/admin/status",
+  title: "System Status",
+  render: pageProps => <SystemStatus {...pageProps} />,
+});

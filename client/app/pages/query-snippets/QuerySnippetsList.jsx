@@ -20,8 +20,6 @@ import QuerySnippet from "@/services/query-snippet";
 import { currentUser } from "@/services/auth";
 import { policy } from "@/services/policy";
 import notification from "@/services/notification";
-import routes from "@/services/routes";
-
 import "./QuerySnippetsList.less";
 
 const canEditQuerySnippet = querySnippet => currentUser.isAdmin || currentUser.id === get(querySnippet, "user.id");
@@ -123,18 +121,16 @@ class QuerySnippetsList extends React.Component {
   showSnippetDialog = (querySnippet = null) => {
     const canSave = !querySnippet || canEditQuerySnippet(querySnippet);
     navigateTo("query_snippets/" + get(querySnippet, "id", "new"), true);
-    const goToSnippetsList = () => navigateTo("query_snippets", true);
     QuerySnippetDialog.showModal({
       querySnippet,
+      onSubmit: this.saveQuerySnippet,
       readOnly: !canSave,
     })
-      .onClose(querySnippet =>
-        this.saveQuerySnippet(querySnippet).then(() => {
-          this.props.controller.update();
-          goToSnippetsList();
-        })
-      )
-      .onDismiss(goToSnippetsList);
+      .result.then(() => this.props.controller.update())
+      .catch(() => {}) // ignore dismiss
+      .finally(() => {
+        navigateTo("query_snippets", true);
+      });
   };
 
   render() {
@@ -177,10 +173,8 @@ class QuerySnippetsList extends React.Component {
               toggleSorting={controller.toggleSorting}
             />
             <Paginator
-              showPageSizeSelect
               totalCount={controller.totalItemsCount}
-              pageSize={controller.itemsPerPage}
-              onPageSizeChange={itemsPerPage => controller.updatePagination({ itemsPerPage })}
+              itemsPerPage={controller.itemsPerPage}
               page={controller.page}
               onChange={page => controller.updatePagination({ page })}
             />
@@ -192,7 +186,6 @@ class QuerySnippetsList extends React.Component {
 }
 
 const QuerySnippetsListPage = wrapSettingsTab(
-  "QuerySnippets.List",
   {
     permission: "create_query",
     title: "Query Snippets",
@@ -215,19 +208,15 @@ const QuerySnippetsListPage = wrapSettingsTab(
   )
 );
 
-routes.register(
-  "QuerySnippets.List",
+export default [
   routeWithUserSession({
     path: "/query_snippets",
     title: "Query Snippets",
     render: pageProps => <QuerySnippetsListPage {...pageProps} currentPage="query_snippets" />,
-  })
-);
-routes.register(
-  "QuerySnippets.NewOrEdit",
+  }),
   routeWithUserSession({
-    path: "/query_snippets/:querySnippetId",
+    path: "/query_snippets/:querySnippetId(new|[0-9]+)",
     title: "Query Snippets",
     render: pageProps => <QuerySnippetsListPage {...pageProps} currentPage="query_snippets" isNewOrEditPage />,
-  })
-);
+  }),
+];

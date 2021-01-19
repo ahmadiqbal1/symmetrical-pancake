@@ -5,7 +5,7 @@ import "./AceEditorInput.less";
 
 function AceEditorInput(props, ref) {
   return (
-    <div className="ace-editor-input" data-test={props["data-test"]}>
+    <div className="ace-editor-input">
       <AceEditor
         ref={ref}
         mode="sql"

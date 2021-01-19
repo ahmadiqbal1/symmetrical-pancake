@@ -128,9 +128,13 @@ class Presto(BaseQueryRunner):
             else:
                 message = None
             error = default_message if message is None else message
-        except (KeyboardInterrupt, InterruptException, JobTimeoutException):
+        except (KeyboardInterrupt, InterruptException) as e:
             cursor.cancel()
-            raise
+            error = "Query cancelled by user."
+            json_data = None
+        except Exception as ex:
+            json_data = None
+            error = str(ex)
 
         return json_data, error
 
