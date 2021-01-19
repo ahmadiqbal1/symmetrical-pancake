@@ -1,13 +1,13 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { isEmpty, toUpper, includes, get } from "lodash";
+import { isEmpty, toUpper, includes } from "lodash";
 import Button from "antd/lib/button";
 import List from "antd/lib/list";
 import Modal from "antd/lib/modal";
 import Input from "antd/lib/input";
 import Steps from "antd/lib/steps";
+import { getErrorMessage } from "@/components/ApplicationArea/ErrorMessage";
 import { wrap as wrapDialog, DialogPropType } from "@/components/DialogWrapper";
-import Link from "@/components/Link";
 import { PreviewCard } from "@/components/PreviewCard";
 import EmptyState from "@/components/items-list/components/EmptyState";
 import DynamicForm from "@/components/dynamic-form/DynamicForm";
@@ -67,7 +67,7 @@ class CreateSourceDialog extends React.Component {
         })
         .catch(error => {
           this.setState({ savingSource: false, currentStep: StepEnum.CONFIGURE_IT });
-          errorCallback(get(error, "response.data.message", "Failed saving."));
+          errorCallback(getErrorMessage(error.message));
         });
     }
   };
@@ -119,9 +119,9 @@ class CreateSourceDialog extends React.Component {
         {selectedType.type === "databricks" && (
           <small>
             By using the Databricks Data Source you agree to the Databricks JDBC/ODBC{" "}
-            <Link href="https://databricks.com/spark/odbc-driver-download" target="_blank" rel="noopener noreferrer">
+            <a href="https://databricks.com/spark/odbc-driver-download" target="_blank" rel="noopener noreferrer">
               Driver Download Terms and Conditions
-            </Link>
+            </a>
             .
           </small>
         )}
@@ -155,7 +155,7 @@ class CreateSourceDialog extends React.Component {
         footer={
           currentStep === StepEnum.SELECT_TYPE
             ? [
-                <Button key="cancel" onClick={() => dialog.dismiss()} data-test="CreateSourceCancelButton">
+                <Button key="cancel" onClick={() => dialog.dismiss()}>
                   Cancel
                 </Button>,
                 <Button key="submit" type="primary" disabled>
@@ -172,7 +172,7 @@ class CreateSourceDialog extends React.Component {
                   form="sourceForm"
                   type="primary"
                   loading={savingSource}
-                  data-test="CreateSourceSaveButton">
+                  data-test="CreateSourceButton">
                   Create
                 </Button>,
               ]

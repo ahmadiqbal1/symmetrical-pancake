@@ -1,9 +1,8 @@
-import { extend } from "lodash";
-import React, { useCallback } from "react";
+import { extend, isFunction } from "lodash";
+import React, { useCallback, useRef } from "react";
 import Modal from "antd/lib/modal";
 import { Query } from "@/services/query";
 import notification from "@/services/notification";
-import useImmutableCallback from "@/lib/hooks/useImmutableCallback";
 
 function confirmArchive() {
   return new Promise((resolve, reject) => {
@@ -41,11 +40,14 @@ function doArchiveQuery(query) {
 }
 
 export default function useArchiveQuery(query, onChange) {
-  const handleChange = useImmutableCallback(onChange);
+  const onChangeRef = useRef();
+  onChangeRef.current = isFunction(onChange) ? onChange : () => {};
 
   return useCallback(() => {
     confirmArchive()
       .then(() => doArchiveQuery(query))
-      .then(handleChange);
-  }, [query, handleChange]);
+      .then(updatedQuery => {
+        onChangeRef.current(updatedQuery);
+      });
+  }, [query]);
 }

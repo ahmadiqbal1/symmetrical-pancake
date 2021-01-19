@@ -25,7 +25,6 @@ import notification from "@/services/notification";
 import { currentUser } from "@/services/auth";
 import Group from "@/services/group";
 import User from "@/services/user";
-import routes from "@/services/routes";
 
 class GroupMembers extends React.Component {
   static propTypes = {
@@ -173,10 +172,8 @@ class GroupMembers extends React.Component {
                   toggleSorting={controller.toggleSorting}
                 />
                 <Paginator
-                  showPageSizeSelect
                   totalCount={controller.totalItemsCount}
-                  pageSize={controller.itemsPerPage}
-                  onPageSizeChange={itemsPerPage => controller.updatePagination({ itemsPerPage })}
+                  itemsPerPage={controller.itemsPerPage}
                   page={controller.page}
                   onChange={page => controller.updatePagination({ page })}
                 />
@@ -190,7 +187,6 @@ class GroupMembers extends React.Component {
 }
 
 const GroupMembersPage = wrapSettingsTab(
-  "Groups.Members",
   null,
   itemsList(
     GroupMembers,
@@ -208,11 +204,8 @@ const GroupMembersPage = wrapSettingsTab(
   )
 );
 
-routes.register(
-  "Groups.Members",
-  routeWithUserSession({
-    path: "/groups/:groupId",
-    title: "Group Members",
-    render: pageProps => <GroupMembersPage {...pageProps} currentPage="users" />,
-  })
-);
+export default routeWithUserSession({
+  path: "/groups/:groupId([0-9]+)",
+  title: "Group Members",
+  render: pageProps => <GroupMembersPage {...pageProps} currentPage="users" />,
+});

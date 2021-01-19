@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 import Input from "antd/lib/input";
 import AntdMenu from "antd/lib/menu";
-import Link from "@/components/Link";
+import Select from "antd/lib/select";
 import TagsList from "@/components/TagsList";
 
 /*
@@ -60,7 +60,7 @@ export function Menu({ items, selected }) {
       <AntdMenu className="invert-stripe-position" mode="inline" selectable={false} selectedKeys={[selected]}>
         {map(items, item => (
           <AntdMenu.Item key={item.key} className="m-0">
-            <Link href={item.href}>
+            <a href={item.href}>
               {isString(item.icon) && item.icon !== "" && (
                 <span className="btn-favourite m-r-5">
                   <i className={item.icon} aria-hidden="true" />
@@ -68,7 +68,7 @@ export function Menu({ items, selected }) {
               )}
               {isFunction(item.icon) && (item.icon(item) || null)}
               {item.title}
-            </Link>
+            </a>
           </AntdMenu.Item>
         ))}
       </AntdMenu>
@@ -132,13 +132,13 @@ ProfileImage.propTypes = {
     Tags
  */
 
-export function Tags({ url, onChange, showUnselectAll }) {
+export function Tags({ url, onChange }) {
   if (url === "") {
     return null;
   }
   return (
     <div className="m-b-10">
-      <TagsList tagsUrl={url} onUpdate={onChange} showUnselectAll={showUnselectAll} />
+      <TagsList tagsUrl={url} onUpdate={onChange} />
     </div>
   );
 }
@@ -146,6 +146,28 @@ export function Tags({ url, onChange, showUnselectAll }) {
 Tags.propTypes = {
   url: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
-  showUnselectAll: PropTypes.bool,
-  unselectAllButtonTitle: PropTypes.string,
+};
+
+/*
+    PageSizeSelect
+ */
+
+export function PageSizeSelect({ options, value, onChange, ...props }) {
+  return (
+    <div {...props}>
+      <Select className="w-100" defaultValue={value} onChange={onChange}>
+        {map(options, option => (
+          <Select.Option key={option} value={option}>
+            {option} results
+          </Select.Option>
+        ))}
+      </Select>
+    </div>
+  );
+}
+
+PageSizeSelect.propTypes = {
+  options: PropTypes.arrayOf(PropTypes.number).isRequired,
+  value: PropTypes.number.isRequired,
+  onChange: PropTypes.func.isRequired,
 };

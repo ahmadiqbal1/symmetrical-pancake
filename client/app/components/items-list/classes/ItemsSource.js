@@ -10,8 +10,6 @@ export class ItemsSource {
 
   onError = null;
 
-  sortByIteratees = undefined;
-
   getCallbackContext = () => null;
 
   _beforeUpdate() {
@@ -43,34 +41,21 @@ export class ItemsSource {
         extend(customParams, params);
       },
     };
-    return this._beforeUpdate().then(() => {
-      const fetchToken = Math.random()
-        .toString(36)
-        .substr(2);
-      this._currentFetchToken = fetchToken;
-      return this._fetcher
+    return this._beforeUpdate().then(() =>
+      this._fetcher
         .fetch(changes, state, context)
         .then(({ results, count, allResults }) => {
-          if (this._currentFetchToken === fetchToken) {
-            this._pageItems = results;
-            this._allItems = allResults || null;
-            this._paginator.setTotalCount(count);
-            this._params = { ...this._params, ...customParams };
-            return this._afterUpdate();
-          }
+          this._pageItems = results;
+          this._allItems = allResults || null;
+          this._paginator.setTotalCount(count);
+          this._params = { ...this._params, ...customParams };
+          return this._afterUpdate();
         })
-        .catch(error => this.handleError(error));
-    });
+        .catch(error => this.handleError(error))
+    );
   }
 
-  constructor({
-    getRequest,
-    doRequest,
-    processResults,
-    isPlainList = false,
-    sortByIteratees = undefined,
-    ...defaultState
-  }) {
+  constructor({ getRequest, doRequest, processResults, isPlainList = false, ...defaultState }) {
     if (!isFunction(getRequest)) {
       getRequest = identity;
     }
@@ -78,8 +63,6 @@ export class ItemsSource {
     this._fetcher = isPlainList
       ? new PlainListFetcher({ getRequest, doRequest, processResults })
       : new PaginatedListFetcher({ getRequest, doRequest, processResults });
-
-    this.sortByIteratees = sortByIteratees;
 
     this.setState(defaultState);
     this._pageItems = [];
@@ -104,7 +87,7 @@ export class ItemsSource {
 
   setState(state) {
     this._paginator = new Paginator(state);
-    this._sorter = new Sorter(state, this.sortByIteratees);
+    this._sorter = new Sorter(state);
 
     this._searchTerm = state.searchTerm || "";
     this._selectedTags = state.selectedTags || [];

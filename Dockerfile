@@ -3,25 +3,15 @@ FROM node:12 as frontend-builder
 # Controls whether to build the frontend assets
 ARG skip_frontend_build
 
-ENV CYPRESS_INSTALL_BINARY=0
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
-
-RUN useradd -m -d /frontend redash
-USER redash
-
 WORKDIR /frontend
-COPY --chown=redash package.json package-lock.json /frontend/
-COPY --chown=redash viz-lib /frontend/viz-lib
-
-# Controls whether to instrument code for coverage information
-ARG code_coverage
-ENV BABEL_ENV=${code_coverage:+test}
-
+COPY package.json package-lock.json /frontend/
+COPY viz-lib /frontend/viz-lib
 RUN if [ "x$skip_frontend_build" = "x" ] ; then npm ci --unsafe-perm; fi
 
-COPY --chown=redash client /frontend/client
-COPY --chown=redash webpack.config.js /frontend/
-RUN if [ "x$skip_frontend_build" = "x" ] ; then npm run build; else mkdir -p /frontend/client/dist && touch /frontend/client/dist/multi_org.html && touch /frontend/client/dist/index.html; fi
+COPY client /frontend/client
+COPY webpack.config.js /frontend/
+RUN if [ "x$skip_frontend_build" = "x" ] ; then npm run build; else mkdir /frontend/client/dist && touch /frontend/client/dist/multi_org.html && touch /frontend/client/dist/index.html; fi
+
 FROM python:3.7-slim
 
 EXPOSE 5000
@@ -68,7 +58,7 @@ RUN apt-get update && \
 ARG databricks_odbc_driver_url=https://databricks.com/wp-content/uploads/2.6.10.1010-2/SimbaSparkODBC-2.6.10.1010-2-Debian-64bit.zip
 ADD $databricks_odbc_driver_url /tmp/simba_odbc.zip
 RUN unzip /tmp/simba_odbc.zip -d /tmp/ \
-  && dpkg -i /tmp/SimbaSparkODBC-*/*.deb \
+  && dpkg -i /tmp/SimbaSparkODBC-2.6.10.1010-2-Debian-64bit/simbaspark_2.6.10.1010-2_amd64.deb \
   && echo "[Simba]\nDriver = /opt/simba/spark/lib/64/libsparkodbc_sb64.so" >> /etc/odbcinst.ini \
   && rm /tmp/simba_odbc.zip \
   && rm -rf /tmp/SimbaSparkODBC*

@@ -3,21 +3,15 @@ import PropTypes from "prop-types";
 import cx from "classnames";
 import useMedia from "use-media";
 import Button from "antd/lib/button";
-
-import FullscreenOutlinedIcon from "@ant-design/icons/FullscreenOutlined";
-import FullscreenExitOutlinedIcon from "@ant-design/icons/FullscreenExitOutlined";
+import Icon from "antd/lib/icon";
 
 import routeWithUserSession from "@/components/ApplicationArea/routeWithUserSession";
 import EditInPlace from "@/components/EditInPlace";
 import Parameters from "@/components/Parameters";
-import DynamicComponent from "@/components/DynamicComponent";
 
 import DataSource from "@/services/data-source";
 import { ExecutionStatus } from "@/services/query-result";
-import routes from "@/services/routes";
-import { policy } from "@/services/policy";
-
-import useQueryResultData from "@/lib/useQueryResultData";
+import getQueryResultData from "@/lib/getQueryResultData";
 
 import QueryPageHeader from "./components/QueryPageHeader";
 import QueryVisualizationTabs from "./components/QueryVisualizationTabs";
@@ -62,7 +56,7 @@ function QueryView(props) {
     updatedAt,
   } = useQueryExecute(query);
 
-  const queryResultData = useQueryResultData(queryResult);
+  const queryResultData = getQueryResultData(queryResult);
 
   const updateQueryDescription = useUpdateQueryDescription(query, setQuery);
   const editSchedule = useEditScheduleDialog(query, setQuery);
@@ -97,25 +91,21 @@ function QueryView(props) {
         "query-view-fullscreen": fullscreen,
         "query-fixed-layout": isFixedLayout,
       })}>
-      <div className="container w-100">
+      <div className="container">
         <QueryPageHeader
           query={query}
           dataSource={dataSource}
           onChange={setQuery}
           selectedVisualization={selectedVisualization}
           headerExtra={
-            <DynamicComponent name="QueryView.HeaderExtra" query={query}>
-              {policy.canRun(query) && (
-                <QueryViewButton
-                  className="m-r-5"
-                  type="primary"
-                  shortcut="mod+enter, alt+enter, ctrl+enter"
-                  disabled={!queryFlags.canExecute || isExecuting || areParametersDirty}
-                  onClick={doExecuteQuery}>
-                  Refresh
-                </QueryViewButton>
-              )}
-            </DynamicComponent>
+            <QueryViewButton
+              className="m-r-5"
+              type="primary"
+              shortcut="mod+enter, alt+enter"
+              disabled={!queryFlags.canExecute || isExecuting || areParametersDirty}
+              onClick={doExecuteQuery}>
+              Refresh
+            </QueryViewButton>
           }
           tagsExtra={
             !query.description &&
@@ -139,7 +129,7 @@ function QueryView(props) {
               onStopEditing={() => setAddingDescription(false)}
               placeholder="Add description"
               ignoreBlanks={false}
-              editorProps={{ autoSize: { minRows: 2, maxRows: 4 } }}
+              editorProps={{ autosize: { minRows: 2, maxRows: 4 } }}
               defaultEditing={addingDescription}
               multiline
             />
@@ -171,18 +161,15 @@ function QueryView(props) {
               onAddVisualization={addVisualization}
               onDeleteVisualization={deleteVisualization}
               refreshButton={
-                policy.canRun(query) && (
-                  <Button
-                    type="primary"
-                    disabled={!queryFlags.canExecute || areParametersDirty}
-                    loading={isExecuting}
-                    onClick={doExecuteQuery}>
-                    {!isExecuting && <i className="zmdi zmdi-refresh m-r-5" aria-hidden="true" />}
-                    Refresh Now
-                  </Button>
-                )
+                <Button
+                  type="primary"
+                  disabled={!queryFlags.canExecute || areParametersDirty}
+                  loading={isExecuting}
+                  onClick={doExecuteQuery}>
+                  {!isExecuting && <i className="zmdi zmdi-refresh m-r-5" aria-hidden="true" />}
+                  Refresh Now
+                </Button>
               }
-              canRefresh={policy.canRun(query)}
             />
           )}
           <div className="query-results-footer">
@@ -201,7 +188,7 @@ function QueryView(props) {
                     type="default"
                     shortcut="alt+f"
                     onClick={toggleFullscreen}>
-                    {fullscreen ? <FullscreenExitOutlinedIcon /> : <FullscreenOutlinedIcon />}
+                    <Icon type={fullscreen ? "fullscreen-exit" : "fullscreen"} />
                   </QueryViewButton>
                 }
               />
@@ -231,10 +218,7 @@ QueryView.propTypes = { query: PropTypes.object.isRequired }; // eslint-disable-
 
 const QueryViewPage = wrapQueryPage(QueryView);
 
-routes.register(
-  "Queries.View",
-  routeWithUserSession({
-    path: "/queries/:queryId",
-    render: pageProps => <QueryViewPage {...pageProps} />,
-  })
-);
+export default routeWithUserSession({
+  path: "/queries/:queryId([0-9]+)",
+  render: pageProps => <QueryViewPage {...pageProps} />,
+});

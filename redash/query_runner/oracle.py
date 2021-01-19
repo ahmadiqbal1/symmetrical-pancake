@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 
 
 class Oracle(BaseSQLQueryRunner):
-    should_annotate_query = False
     noop_query = "SELECT 1 FROM dual"
 
     @classmethod

@@ -53,7 +53,6 @@ class TreasureData(BaseQueryRunner):
                     "default": False,
                 },
             },
-            "secret": ["apikey"],
             "required": ["apikey", "db"],
         }
 

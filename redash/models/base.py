@@ -4,7 +4,6 @@ from flask_sqlalchemy import BaseQuery, SQLAlchemy
 from sqlalchemy.orm import object_session
 from sqlalchemy.pool import NullPool
 from sqlalchemy_searchable import make_searchable, vectorizer, SearchQueryMixin
-from sqlalchemy.dialects import postgresql
 
 from redash import settings
 from redash.utils import json_dumps
@@ -46,11 +45,6 @@ class SearchBaseQuery(BaseQuery, SearchQueryMixin):
 
 @vectorizer(db.Integer)
 def integer_vectorizer(column):
-    return db.func.cast(column, db.Text)
-
-
-@vectorizer(postgresql.UUID)
-def uuid_vectorizer(column):
     return db.func.cast(column, db.Text)
 
 
@@ -96,15 +90,3 @@ class GFKBase(object):
         self._object = value
         self.object_type = value.__class__.__tablename__
         self.object_id = value.id
-
-
-key_definitions = settings.dynamic_settings.database_key_definitions((db.Integer, {}))
-
-
-def key_type(name):
-    return key_definitions[name][0]
-
-
-def primary_key(name):
-    key_type, kwargs = key_definitions[name]
-    return Column(key_type, primary_key=True, **kwargs)

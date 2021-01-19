@@ -1,5 +1,7 @@
 /* global cy */
 
+import { createQuery } from "../../support/redash-api";
+
 const SQL = `
   SELECT 'AR' AS "code", 'Argentina' AS "name", 37.62 AS "value" UNION ALL
   SELECT 'AU' AS "code", 'Australia' AS "name", 37.62 AS "value" UNION ALL
@@ -28,27 +30,29 @@ const SQL = `
 `;
 
 describe("Choropleth", () => {
-  const viewportWidth = Cypress.config("viewportWidth");
-
   beforeEach(() => {
     cy.login();
-    cy.createQuery({ query: SQL }).then(({ id }) => {
+    createQuery({ query: SQL }).then(({ id }) => {
       cy.visit(`queries/${id}/source`);
       cy.getByTestId("ExecuteButton").click();
     });
-    cy.getByTestId("NewVisualization").click();
-    cy.getByTestId("VisualizationType").selectAntdOption("VisualizationType.CHOROPLETH");
   });
 
   it("creates visualization", () => {
     cy.clickThrough(`
+      NewVisualization
+      VisualizationType
+      VisualizationType.CHOROPLETH
+    `);
+
+    cy.clickThrough(`
       VisualizationEditor.Tabs.General
       Choropleth.Editor.MapType
-      Choropleth.Editor.MapType.countries
+      Choropleth.Editor.MapType.Countries
       Choropleth.Editor.KeyColumn
       Choropleth.Editor.KeyColumn.name
-      Choropleth.Editor.TargetField
-      Choropleth.Editor.TargetField.name
+      Choropleth.Editor.KeyType
+      Choropleth.Editor.KeyType.name
       Choropleth.Editor.ValueColumn
       Choropleth.Editor.ValueColumn.value
     `);
@@ -80,6 +84,8 @@ describe("Choropleth", () => {
       .find(".map-visualization-container.leaflet-container")
       .should("exist");
 
-    cy.percySnapshot("Visualizations - Choropleth", { widths: [viewportWidth] });
+    // This is unstable and therefore disabled until a better solution is available.
+    // const viewportWidth = Cypress.config("viewportWidth");
+    // cy.percySnapshot("Visualizations - Choropleth", { widths: [viewportWidth] });
   });
 });
