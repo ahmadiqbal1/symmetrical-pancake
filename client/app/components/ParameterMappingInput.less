@@ -1,0 +1,48 @@
+@import "~antd/lib/modal/style/index"; // for ant @vars
+
+.parameters-mapping-list {
+  .keyword {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    code {
+      white-space: nowrap; // so the curly braces don't line break
+    }
+  }
+
+  // Ant <Tag> overrides
+  .tag {
+    margin: 0;
+    pointer-events: none; // unclickable
+
+    &:empty {
+      display: none;
+    }
+  }
+}
+
+.parameter-mapping-title {
+  .text {
+    margin-right: 3px;
+  }
+
+  &.disabled,
+  .fa {
+    color: #a4a4a4;
+  }
+
+  .fa-eye-slash {
+    margin-left: 1px;
+  }
+}
+
+.parameter-mapping-title-editor {
+  input {
+    width: 100px;
+  }
+
+  button {
+    margin-left: 2px;
+  }
+}
