@@ -1,31 +1,6 @@
 import { merge } from "lodash";
 
-export type LeafletBaseIconType = "marker" | "rectangle" | "circle" | "rectangle-dot" | "circle-dot" | "doughnut";
-export interface MapOptionsType {
-  latColName: string;
-  lonColName: string;
-  classify: any;
-  groups: Record<string, any>;
-  mapTileUrl: string;
-  clusterMarkers: boolean;
-  customizeMarkers: boolean;
-  iconShape: LeafletBaseIconType;
-  iconFont: LeafletBaseIconType;
-  foregroundColor: string;
-  backgroundColor: string;
-  borderColor: string;
-  bounds: any;
-  tooltip: {
-    enabled: boolean;
-    template: string;
-  };
-  popup: {
-    enabled: boolean;
-    template: string;
-  };
-}
-
-const DEFAULT_OPTIONS: MapOptionsType = {
+const DEFAULT_OPTIONS = {
   latColName: "lat",
   lonColName: "lon",
   classify: null,
@@ -49,7 +24,7 @@ const DEFAULT_OPTIONS: MapOptionsType = {
   },
 };
 
-export default function getOptions(options: MapOptionsType) {
+export default function getOptions(options: any) {
   options = merge({}, DEFAULT_OPTIONS, options);
   options.mapTileUrl = options.mapTileUrl || DEFAULT_OPTIONS.mapTileUrl;
 

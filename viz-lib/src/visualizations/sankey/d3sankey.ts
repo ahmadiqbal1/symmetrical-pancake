@@ -2,38 +2,6 @@
 
 import d3 from "d3";
 
-export interface LinkType {
-  id: number;
-  name: string;
-  color: string;
-  x: number;
-  y: number;
-  dx: number;
-  dy: number;
-  source: SourceTargetType;
-  target: SourceTargetType;
-}
-
-export type SourceTargetType = {
-  sourceLinks: Array<LinkType>;
-  targetLinks: Array<LinkType>;
-};
-
-export type NodeType = LinkType & SourceTargetType;
-export interface D3SankeyType {
-  nodeWidth: (...args: any[]) => any;
-  nodeHeight: (...args: any[]) => any;
-  nodePadding: (...args: any[]) => any;
-  nodes: (...args: any[]) => any[];
-  link: (...args: any[]) => any;
-  links: (...args: any[]) => any[];
-  size: (...args: any[]) => any;
-  layout: (...args: any[]) => any;
-  relayout: (...args: any[]) => any;
-}
-
-export type DType = { sy: number; ty: number; value: number; source: LinkType; target: LinkType } & LinkType;
-
 function center(node: any) {
   return node.y + node.dy / 2;
 }
@@ -42,21 +10,23 @@ function value(link: any) {
   return link.value;
 }
 
-function Sankey(): D3SankeyType {
+function Sankey() {
   const sankey = {};
   let nodeWidth = 24;
   let nodePadding = 8;
   let size = [1, 1];
-  let nodes: any[] = [];
-  let links: any[] = [];
+  let nodes: any = [];
+  let links: any = [];
 
   // Populate the sourceLinks and targetLinks for each node.
   // Also, if the source and target are not objects, assume they are indices.
   function computeNodeLinks() {
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
     nodes.forEach(node => {
       node.sourceLinks = [];
       node.targetLinks = [];
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'link' implicitly has an 'any' type.
     links.forEach(link => {
       let source = link.source;
       let target = link.target;
@@ -69,12 +39,14 @@ function Sankey(): D3SankeyType {
 
   // Compute the value (size) of each node by summing the associated links.
   function computeNodeValues() {
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
     nodes.forEach(node => {
       node.value = Math.max(d3.sum(node.sourceLinks, value), d3.sum(node.targetLinks, value));
     });
   }
 
   function moveSinksRight(x: any) {
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
     nodes.forEach(node => {
       if (!node.sourceLinks.length) {
         node.x = x - 1;
@@ -83,6 +55,7 @@ function Sankey(): D3SankeyType {
   }
 
   function scaleNodeBreadths(kx: any) {
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
     nodes.forEach(node => {
       node.x *= kx;
     });
@@ -116,6 +89,7 @@ function Sankey(): D3SankeyType {
 
     moveSinksRight(x);
     x = Math.max(
+      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
       d3.max(nodes, n => n.x),
       2
     ); // get new maximum x value (min 2)
@@ -124,7 +98,7 @@ function Sankey(): D3SankeyType {
 
   function computeNodeDepths(iterations: any) {
     const nodesByBreadth = d3
-      // @ts-expect-error
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'nest' does not exist on type 'typeof imp... Remove this comment to see the full error message
       .nest()
       .key((d: any) => d.x)
       .sortKeys(d3.ascending)
@@ -143,6 +117,7 @@ function Sankey(): D3SankeyType {
         });
       });
 
+      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'link' implicitly has an 'any' type.
       links.forEach(link => {
         // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
         link.dy = link.value * ky;
@@ -231,10 +206,12 @@ function Sankey(): D3SankeyType {
   }
 
   function computeLinkDepths() {
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
     nodes.forEach(node => {
       node.sourceLinks.sort(ascendingTargetDepth);
       node.targetLinks.sort(ascendingSourceDepth);
     });
+    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'node' implicitly has an 'any' type.
     nodes.forEach(node => {
       let sy = 0,
         ty = 0;
@@ -312,7 +289,7 @@ function Sankey(): D3SankeyType {
   sankey.link = function() {
     let curvature = 0.5;
 
-    function link(d: DType) {
+    function link(d: any) {
       const x0 = d.source.x + d.source.dx;
       const x1 = d.target.x;
       const xi = d3.interpolateNumber(x0, x1);
@@ -333,7 +310,7 @@ function Sankey(): D3SankeyType {
     return link;
   };
 
-  return sankey as D3SankeyType;
+  return sankey;
 }
 
 export default Sankey;
