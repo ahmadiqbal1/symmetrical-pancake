@@ -1,15 +1,12 @@
-import { isString, isObject, isFunction, extend, omit, sortBy, find, filter } from "lodash";
+import { isFunction, extend, omit, sortBy, find } from "lodash";
 import { stripBase } from "@/components/ApplicationArea/Router";
 import { currentUser } from "@/services/auth";
 
 class SettingsMenuItem {
   constructor(menuItem) {
-    extend(this, { pathPrefix: `/${menuItem.path}` }, omit(menuItem, ["isActive", "isAvailable"]));
+    extend(this, { pathPrefix: `/${menuItem.path}` }, omit(menuItem, ["isActive"]));
     if (isFunction(menuItem.isActive)) {
       this.isActive = menuItem.isActive;
-    }
-    if (isFunction(menuItem.isAvailable)) {
-      this.isAvailable = menuItem.isAvailable;
     }
   }
 
@@ -23,26 +20,13 @@ class SettingsMenuItem {
 }
 
 class SettingsMenu {
-  items = [];
-
-  add(id, item) {
-    id = isString(id) ? id : null;
-    this.remove(id);
-    if (isObject(item)) {
-      this.items.push(new SettingsMenuItem({ ...item, id }));
-      this.items = sortBy(this.items, "order");
-    }
+  constructor() {
+    this.items = [];
   }
 
-  remove(id) {
-    if (isString(id)) {
-      this.items = filter(this.items, item => item.id !== id);
-      // removing item does not change order of other items, so no need to sort
-    }
-  }
-
-  getAvailableItems() {
-    return filter(this.items, item => item.isAvailable());
+  add(item) {
+    this.items.push(new SettingsMenuItem(item));
+    this.items = sortBy(this.items, "order");
   }
 
   getActiveItem(path) {

@@ -11,8 +11,5 @@
   "defaultCommandTimeout": 20000,
   "requestTimeout": 15000,
   "viewportWidth": 1280,
-  "viewportHeight": 1024,
-  "env": {
-    "coverage": false
-  }
+  "viewportHeight": 1024
 }

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
 import cx from "classnames";
 import { find, orderBy } from "lodash";
@@ -17,7 +17,7 @@ function EmptyState({ title, message, refreshButton }) {
     <div className="query-results-empty-state">
       <div className="empty-state-content">
         <div>
-          <img src="static/images/illustrations/no-query-results.svg" alt="No Query Results Illustration" />
+          <img src="/static/images/illustrations/no-query-results.svg" alt="No Query Results Illustration" />
         </div>
         <h3>{title}</h3>
         <div className="m-b-20">{message}</div>
@@ -91,7 +91,6 @@ export default function QueryVisualizationTabs({
   onAddVisualization,
   onDeleteVisualization,
   refreshButton,
-  canRefresh,
   ...props
 }) {
   const visualizations = useMemo(
@@ -121,8 +120,6 @@ export default function QueryVisualizationTabs({
   const isFirstVisualization = useCallback(visId => visId === orderedVisualizations[0].id, [orderedVisualizations]);
   const isMobile = useMedia({ maxWidth: 768 });
 
-  const [filters, setFilters] = useState([]);
-
   return (
     <Tabs
       {...tabsProps}
@@ -136,6 +133,7 @@ export default function QueryVisualizationTabs({
       {orderedVisualizations.map(visualization => (
         <TabPane
           key={`${visualization.id}`}
+          data-test={`QueryPageVisualization${selectedTab}`}
           tab={
             <TabWithDeleteButton
               data-test={`QueryPageVisualizationTab${visualization.id}`}
@@ -145,21 +143,11 @@ export default function QueryVisualizationTabs({
             />
           }>
           {queryResult ? (
-            <VisualizationRenderer
-              visualization={visualization}
-              queryResult={queryResult}
-              context="query"
-              filters={filters}
-              onFiltersChange={setFilters}
-            />
+            <VisualizationRenderer visualization={visualization} queryResult={queryResult} context="query" />
           ) : (
             <EmptyState
-              title="Query has no result"
-              message={
-                canRefresh
-                  ? "Execute/Refresh the query to show results."
-                  : "You do not have a permission to execute/refresh this query."
-              }
+              title="Query Has no Result"
+              message="Execute/Refresh the query to show results."
               refreshButton={refreshButton}
             />
           )}
@@ -179,7 +167,6 @@ QueryVisualizationTabs.propTypes = {
   onAddVisualization: PropTypes.func,
   onDeleteVisualization: PropTypes.func,
   refreshButton: PropTypes.node,
-  canRefresh: PropTypes.bool,
 };
 
 QueryVisualizationTabs.defaultProps = {
@@ -192,5 +179,4 @@ QueryVisualizationTabs.defaultProps = {
   onAddVisualization: () => {},
   onDeleteVisualization: () => {},
   refreshButton: null,
-  canRefresh: true,
 };

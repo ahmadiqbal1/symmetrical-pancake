@@ -1,10 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
-import Link from "@/components/Link";
 import BigMessage from "@/components/BigMessage";
 import NoTaggedObjectsFound from "@/components/NoTaggedObjectsFound";
-import EmptyState, { EmptyStateHelpMessage } from "@/components/empty-state/EmptyState";
-import DynamicComponent from "@/components/DynamicComponent";
+import EmptyState from "@/components/empty-state/EmptyState";
 
 export default function QueriesListEmptyState({ page, searchTerm, selectedTags }) {
   if (searchTerm !== "") {
@@ -21,23 +19,21 @@ export default function QueriesListEmptyState({ page, searchTerm, selectedTags }
     case "my":
       return (
         <div className="tiled bg-white p-15">
-          <Link.Button href="queries/new" type="primary" size="small">
+          <a href="queries/new" className="btn btn-primary btn-sm">
             Create your first query
-          </Link.Button>{" "}
+          </a>{" "}
           to populate My Queries list. Need help? Check out our{" "}
-          <Link href="https://redash.io/help/user-guide/querying/writing-queries">query writing documentation</Link>.
+          <a href="https://redash.io/help/user-guide/querying/writing-queries">query writing documentation</a>.
         </div>
       );
     default:
       return (
-        <DynamicComponent name="QueriesList.EmptyState">
-          <EmptyState
-            icon="fa fa-code"
-            illustration="query"
-            description="Getting the data from your datasources."
-            helpMessage={<EmptyStateHelpMessage helpTriggerType="QUERIES" />}
-          />
-        </DynamicComponent>
+        <EmptyState
+          icon="fa fa-code"
+          illustration="query"
+          description="Getting the data from your datasources."
+          helpLink="https://help.redash.io/category/21-querying"
+        />
       );
   }
 }

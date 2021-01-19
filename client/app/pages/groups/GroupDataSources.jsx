@@ -3,7 +3,7 @@ import React from "react";
 import Button from "antd/lib/button";
 import Dropdown from "antd/lib/dropdown";
 import Menu from "antd/lib/menu";
-import DownOutlinedIcon from "@ant-design/icons/DownOutlined";
+import Icon from "antd/lib/icon";
 
 import routeWithUserSession from "@/components/ApplicationArea/routeWithUserSession";
 import navigateTo from "@/components/ApplicationArea/navigateTo";
@@ -28,7 +28,6 @@ import notification from "@/services/notification";
 import { currentUser } from "@/services/auth";
 import Group from "@/services/group";
 import DataSource from "@/services/data-source";
-import routes from "@/services/routes";
 
 class GroupDataSources extends React.Component {
   static propTypes = {
@@ -74,7 +73,7 @@ class GroupDataSources extends React.Component {
           <Dropdown trigger={["click"]} overlay={menu}>
             <Button className="w-100">
               {datasource.view_only ? "View Only" : "Full Access"}
-              <DownOutlinedIcon />
+              <Icon type="down" />
             </Button>
           </Dropdown>
         );
@@ -210,10 +209,8 @@ class GroupDataSources extends React.Component {
                   toggleSorting={controller.toggleSorting}
                 />
                 <Paginator
-                  showPageSizeSelect
                   totalCount={controller.totalItemsCount}
-                  pageSize={controller.itemsPerPage}
-                  onPageSizeChange={itemsPerPage => controller.updatePagination({ itemsPerPage })}
+                  itemsPerPage={controller.itemsPerPage}
                   page={controller.page}
                   onChange={page => controller.updatePagination({ page })}
                 />
@@ -227,7 +224,6 @@ class GroupDataSources extends React.Component {
 }
 
 const GroupDataSourcesPage = wrapSettingsTab(
-  "Groups.DataSources",
   null,
   itemsList(
     GroupDataSources,
@@ -245,11 +241,8 @@ const GroupDataSourcesPage = wrapSettingsTab(
   )
 );
 
-routes.register(
-  "Groups.DataSources",
-  routeWithUserSession({
-    path: "/groups/:groupId/data_sources",
-    title: "Group Data Sources",
-    render: pageProps => <GroupDataSourcesPage {...pageProps} currentPage="datasources" />,
-  })
-);
+export default routeWithUserSession({
+  path: "/groups/:groupId([0-9]+)/data_sources",
+  title: "Group Data Sources",
+  render: pageProps => <GroupDataSourcesPage {...pageProps} currentPage="datasources" />,
+});

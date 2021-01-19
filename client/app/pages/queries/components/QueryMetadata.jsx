@@ -1,4 +1,4 @@
-import { isFunction, has } from "lodash";
+import { isFunction } from "lodash";
 import React from "react";
 import PropTypes from "prop-types";
 import cx from "classnames";
@@ -41,7 +41,7 @@ export default function QueryMetadata({ query, dataSource, layout, onEditSchedul
         </div>
       </div>
       <div className="query-metadata-space" />
-      {has(dataSource, "name") && has(dataSource, "type") && (
+      {dataSource && (
         <div className="query-metadata-item">
           Data Source:
           <img src={`${IMG_ROOT}/${dataSource.type}.png`} width="20" alt={dataSource.type} />
@@ -88,8 +88,8 @@ QueryMetadata.propTypes = {
     schedule: PropTypes.object,
   }).isRequired,
   dataSource: PropTypes.shape({
-    type: PropTypes.string,
-    name: PropTypes.string,
+    type: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
   }),
   onEditSchedule: PropTypes.func,
 };

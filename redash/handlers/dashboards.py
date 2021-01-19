@@ -115,11 +115,11 @@ class DashboardListResource(BaseResource):
 
 class DashboardResource(BaseResource):
     @require_permission("list_dashboards")
-    def get(self, dashboard_id=None):
+    def get(self, dashboard_slug=None):
         """
         Retrieves a dashboard.
 
-        :qparam number id: Id of dashboard to retrieve.
+        :qparam string slug: Slug of dashboard to retrieve.
 
         .. _dashboard-response-label:
 
@@ -135,7 +135,6 @@ class DashboardResource(BaseResource):
         :>json boolean is_draft: Whether this dashboard is a draft or not.
         :>json array layout: Array of arrays containing widget IDs, corresponding to the rows and columns the widgets are displayed in
         :>json array widgets: Array of arrays containing :ref:`widget <widget-response-label>` data
-        :>json object options: Dashboard options
 
         .. _widget-response-label:
 
@@ -150,12 +149,9 @@ class DashboardResource(BaseResource):
         :>json string widget.created_at: ISO format timestamp for widget creation
         :>json string widget.updated_at: ISO format timestamp for last widget modification
         """
-        if request.args.get("legacy") is not None:
-            fn = models.Dashboard.get_by_slug_and_org
-        else:
-            fn = models.Dashboard.get_by_id_and_org
-
-        dashboard = get_object_or_404(fn, dashboard_id, self.current_org)
+        dashboard = get_object_or_404(
+            models.Dashboard.get_by_slug_and_org, dashboard_slug, self.current_org
+        )
         response = DashboardSerializer(
             dashboard, with_widgets=True, user=self.current_user
         ).serialize()
@@ -179,11 +175,11 @@ class DashboardResource(BaseResource):
         return response
 
     @require_permission("edit_dashboard")
-    def post(self, dashboard_id):
+    def post(self, dashboard_slug):
         """
         Modifies a dashboard.
 
-        :qparam number id: Id of dashboard to retrieve.
+        :qparam string slug: Slug of dashboard to retrieve.
 
         Responds with the updated :ref:`dashboard <dashboard-response-label>`.
 
@@ -192,7 +188,7 @@ class DashboardResource(BaseResource):
         """
         dashboard_properties = request.get_json(force=True)
         # TODO: either convert all requests to use slugs or ids
-        dashboard = models.Dashboard.get_by_id_and_org(dashboard_id, self.current_org)
+        dashboard = models.Dashboard.get_by_id_and_org(dashboard_slug, self.current_org)
 
         require_object_modify_permission(dashboard, self.current_user)
 
@@ -206,7 +202,6 @@ class DashboardResource(BaseResource):
                 "is_draft",
                 "is_archived",
                 "dashboard_filters_enabled",
-                "options",
             ),
         )
 
@@ -236,15 +231,17 @@ class DashboardResource(BaseResource):
         return result
 
     @require_permission("edit_dashboard")
-    def delete(self, dashboard_id):
+    def delete(self, dashboard_slug):
         """
         Archives a dashboard.
 
-        :qparam number id: Id of dashboard to retrieve.
+        :qparam string slug: Slug of dashboard to retrieve.
 
         Responds with the archived :ref:`dashboard <dashboard-response-label>`.
         """
-        dashboard = models.Dashboard.get_by_id_and_org(dashboard_id, self.current_org)
+        dashboard = models.Dashboard.get_by_slug_and_org(
+            dashboard_slug, self.current_org
+        )
         dashboard.is_archived = True
         dashboard.record_changes(changed_by=self.current_user)
         models.db.session.add(dashboard)
@@ -270,9 +267,6 @@ class PublicDashboardResource(BaseResource):
         :param token: An API key for a public dashboard.
         :>json array widgets: An array of arrays of :ref:`public widgets <public-widget-label>`, corresponding to the rows and columns the widgets are displayed in
         """
-        if self.current_org.get_setting("disable_public_urls"):
-            abort(400, message="Public URLs are disabled.")
-
         if not isinstance(self.current_user, models.ApiUser):
             api_key = get_object_or_404(models.ApiKey.get_by_api_key, token)
             dashboard = api_key.object

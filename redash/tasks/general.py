@@ -8,7 +8,7 @@ from rq.job import Job
 from redash import mail, models, settings, rq_redis_connection
 from redash.models import users
 from redash.version_check import run_version_check
-from redash.worker import job, get_job_logger, default_operational_queues
+from redash.worker import job, get_job_logger
 from redash.tasks.worker import Queue
 from redash.query_runner import NotSupported
 
@@ -98,8 +98,7 @@ def sync_user_details():
 
 def purge_failed_jobs():
     with Connection(rq_redis_connection):
-        queues = [q for q in Queue.all() if q.name not in default_operational_queues]
-        for queue in queues:
+        for queue in Queue.all():
             failed_job_ids = FailedJobRegistry(queue=queue).get_job_ids()
             failed_jobs = Job.fetch_many(failed_job_ids, rq_redis_connection)
             stale_jobs = []

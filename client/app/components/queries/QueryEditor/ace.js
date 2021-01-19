@@ -1,14 +1,14 @@
-import { capitalize, isNil, map, get } from "lodash";
+import { isNil, map } from "lodash";
 import AceEditor from "react-ace";
-import ace from "ace-builds";
+import ace from "brace";
 
-import "ace-builds/src-noconflict/ext-language_tools";
-import "ace-builds/src-noconflict/mode-json";
-import "ace-builds/src-noconflict/mode-python";
-import "ace-builds/src-noconflict/mode-sql";
-import "ace-builds/src-noconflict/mode-yaml";
-import "ace-builds/src-noconflict/theme-textmate";
-import "ace-builds/src-noconflict/ext-searchbox";
+import "brace/ext/language_tools";
+import "brace/mode/json";
+import "brace/mode/python";
+import "brace/mode/sql";
+import "brace/mode/yaml";
+import "brace/theme/textmate";
+import "brace/ext/searchbox";
 
 const langTools = ace.acequire("ace/ext/language_tools");
 const snippetsModule = ace.acequire("ace/snippets");
@@ -30,12 +30,13 @@ defineDummySnippets("yaml");
 function buildTableColumnKeywords(table) {
   const keywords = [];
   table.columns.forEach(column => {
-    const columnName = get(column, "name");
     keywords.push({
-      name: `${table.name}.${columnName}`,
-      value: `${table.name}.${columnName}`,
+      caption: column,
+      name: `${table.name}.${column}`,
+      value: `${table.name}.${column}`,
       score: 100,
-      meta: capitalize(get(column, "type", "Column")),
+      meta: "Column",
+      className: "completion",
     });
   });
   return keywords;
@@ -55,8 +56,7 @@ function buildKeywordsFromSchema(schema) {
     });
     tableColumnKeywords[table.name] = buildTableColumnKeywords(table);
     table.columns.forEach(c => {
-      const columnName = get(c, "name", c);
-      columnKeywords[columnName] = capitalize(get(c, "type", "Column"));
+      columnKeywords[c] = "Column";
     });
   });
 

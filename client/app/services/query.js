@@ -5,7 +5,6 @@ import { axios } from "@/services/axios";
 import {
   zipObject,
   isEmpty,
-  isArray,
   map,
   filter,
   includes,
@@ -24,7 +23,6 @@ import location from "@/services/location";
 import { Parameter, createParameter } from "./parameters";
 import { currentUser } from "./auth";
 import QueryResult from "./query-result";
-import localOptions from "@/lib/localOptions";
 
 Mustache.escape = identity; // do not html-escape values
 
@@ -47,15 +45,6 @@ function collectParams(parts) {
 export class Query {
   constructor(query) {
     extend(this, query);
-
-    if (!has(this, "options")) {
-      this.options = {};
-    }
-    this.options.apply_auto_limit = !!this.options.apply_auto_limit;
-
-    if (!isArray(this.options.parameters)) {
-      this.options.parameters = [];
-    }
   }
 
   isNew() {
@@ -132,8 +121,7 @@ export class Query {
   }
 
   getQueryResult(maxAge) {
-    const execute = () =>
-      QueryResult.getByQueryId(this.id, this.getParameters().getExecutionValues(), this.getAutoLimit(), maxAge);
+    const execute = () => QueryResult.getByQueryId(this.id, this.getParameters().getExecutionValues(), maxAge);
     return this.prepareQueryResultExecution(execute, maxAge);
   }
 
@@ -144,8 +132,7 @@ export class Query {
     }
 
     const parameters = this.getParameters().getExecutionValues({ joinListValues: true });
-    const execute = () =>
-      QueryResult.get(this.data_source_id, queryText, parameters, this.getAutoLimit(), maxAge, this.id);
+    const execute = () => QueryResult.get(this.data_source_id, queryText, parameters, maxAge, this.id);
     return this.prepareQueryResultExecution(execute, maxAge);
   }
 
@@ -186,10 +173,6 @@ export class Query {
     }
 
     return this.$parameters;
-  }
-
-  getAutoLimit() {
-    return this.options.apply_auto_limit;
   }
 
   getParametersDefs(update = true) {
@@ -402,10 +385,25 @@ QueryService.newQuery = function newQuery() {
     name: "New Query",
     schedule: null,
     user: currentUser,
-    options: { apply_auto_limit: localOptions.get("applyAutoLimit", true) },
+    options: {},
     tags: [],
     can_edit: true,
   });
+};
+
+QueryService.format = function formatQuery(syntax, query) {
+  if (syntax === "json") {
+    try {
+      const formatted = JSON.stringify(JSON.parse(query), " ", 4);
+      return Promise.resolve(formatted);
+    } catch (err) {
+      return Promise.reject(String(err));
+    }
+  } else if (syntax === "sql") {
+    return axios.post("api/queries/format", { query }).then(data => data.query);
+  } else {
+    return Promise.reject("Query formatting is not supported for your data source syntax.");
+  }
 };
 
 extend(Query, QueryService);

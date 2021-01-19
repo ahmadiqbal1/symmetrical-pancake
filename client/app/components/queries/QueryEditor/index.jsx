@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState, useCallback, useImperativeHandle }
 import PropTypes from "prop-types";
 import cx from "classnames";
 import { AceEditor, snippetsModule, updateSchemaCompleter } from "./ace";
-import { SchemaItemType } from "@/components/queries/SchemaBrowser";
 import resizeObserver from "@/services/resizeObserver";
 import QuerySnippet from "@/services/query-snippet";
 
@@ -158,7 +157,13 @@ QueryEditor.propTypes = {
   syntax: PropTypes.string,
   value: PropTypes.string,
   autocompleteEnabled: PropTypes.bool,
-  schema: PropTypes.arrayOf(SchemaItemType),
+  schema: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      size: PropTypes.number,
+      columns: PropTypes.arrayOf(PropTypes.string).isRequired,
+    })
+  ),
   onChange: PropTypes.func,
   onSelectionChange: PropTypes.func,
 };

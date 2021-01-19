@@ -6,14 +6,13 @@ from functools import wraps
 import socket
 import ipaddress
 from urllib.parse import urlparse
+import requests
 
 from six import text_type
 from sshtunnel import open_tunnel
-from redash import settings, utils
-from redash.utils import json_loads, query_is_select_no_limit, add_limit_to_query
+from redash import settings
+from redash.utils import json_loads
 from rq.timeouts import JobTimeoutException
-
-from redash.utils.requests_session import requests, requests_session
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +82,7 @@ class BaseQueryRunner(object):
         """Returns this query runner's configured host.
         This is used primarily for temporarily swapping endpoints when using SSH tunnels to connect to a data source.
 
-        `BaseQueryRunner`'s naïve implementation supports query runner implementations that store endpoints using `host` and `port`
+        `BaseQueryRunner`'s naïve implementation supports query runner implementations that store endpoints using `host` and `port` 
         configuration values. If your query runner uses a different schema (e.g. a web address), you should override this function.
         """
         if "host" in self.configuration:
@@ -96,7 +95,7 @@ class BaseQueryRunner(object):
         """Sets this query runner's configured host.
         This is used primarily for temporarily swapping endpoints when using SSH tunnels to connect to a data source.
 
-        `BaseQueryRunner`'s naïve implementation supports query runner implementations that store endpoints using `host` and `port`
+        `BaseQueryRunner`'s naïve implementation supports query runner implementations that store endpoints using `host` and `port` 
         configuration values. If your query runner uses a different schema (e.g. a web address), you should override this function.
         """
         if "host" in self.configuration:
@@ -109,7 +108,7 @@ class BaseQueryRunner(object):
         """Returns this query runner's configured port.
         This is used primarily for temporarily swapping endpoints when using SSH tunnels to connect to a data source.
 
-        `BaseQueryRunner`'s naïve implementation supports query runner implementations that store endpoints using `host` and `port`
+        `BaseQueryRunner`'s naïve implementation supports query runner implementations that store endpoints using `host` and `port` 
         configuration values. If your query runner uses a different schema (e.g. a web address), you should override this function.
         """
         if "port" in self.configuration:
@@ -122,7 +121,7 @@ class BaseQueryRunner(object):
         """Sets this query runner's configured port.
         This is used primarily for temporarily swapping endpoints when using SSH tunnels to connect to a data source.
 
-        `BaseQueryRunner`'s naïve implementation supports query runner implementations that store endpoints using `host` and `port`
+        `BaseQueryRunner`'s naïve implementation supports query runner implementations that store endpoints using `host` and `port` 
         configuration values. If your query runner uses a different schema (e.g. a web address), you should override this function.
         """
         if "port" in self.configuration:
@@ -190,17 +189,6 @@ class BaseQueryRunner(object):
             **({"deprecated": True} if cls.deprecated else {}),
         }
 
-    @property
-    def supports_auto_limit(self):
-        return False
-
-    def apply_auto_limit(self, query_text, should_apply_auto_limit):
-        return query_text
-
-    def gen_query_hash(self, query_text, set_auto_limit=False):
-        query_text = self.apply_auto_limit(query_text, set_auto_limit)
-        return utils.gen_query_hash(query_text)
-
 
 class BaseSQLQueryRunner(BaseQueryRunner):
     def get_schema(self, get_stats=False):
@@ -218,22 +206,6 @@ class BaseSQLQueryRunner(BaseQueryRunner):
             if type(tables_dict[t]) == dict:
                 res = self._run_query_internal("select count(*) as cnt from %s" % t)
                 tables_dict[t]["size"] = res[0]["cnt"]
-
-    @property
-    def supports_auto_limit(self):
-        return True
-
-    def apply_auto_limit(self, query_text, should_apply_auto_limit):
-        if should_apply_auto_limit:
-            from redash.query_runner.databricks import split_sql_statements, combine_sql_statements
-            queries = split_sql_statements(query_text)
-            # we only check for last one in the list because it is the one that we show result
-            last_query = queries[-1]
-            if query_is_select_no_limit(last_query):
-                queries[-1] = add_limit_to_query(last_query)
-            return combine_sql_statements(queries)
-        else:
-            return query_text
 
 
 def is_private_address(url):
@@ -285,7 +257,7 @@ class BaseHTTPQueryRunner(BaseQueryRunner):
             return None
 
     def get_response(self, url, auth=None, http_method="get", **kwargs):
-        if is_private_address(url) and settings.ENFORCE_PRIVATE_ADDRESS_BLOCK:
+        if is_private_address(url):
             raise Exception("Can't query private addresses.")
 
         # Get authentication values if not given
@@ -297,7 +269,7 @@ class BaseHTTPQueryRunner(BaseQueryRunner):
         error = None
         response = None
         try:
-            response = requests_session.request(http_method, url, auth=auth, **kwargs)
+            response = requests.request(http_method, url, auth=auth, **kwargs)
             # Raise a requests HTTP exception with the appropriate reason
             # for 4xx and 5xx response status codes which is later caught
             # and passed back.

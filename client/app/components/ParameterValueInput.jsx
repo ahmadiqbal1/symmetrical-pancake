@@ -1,7 +1,7 @@
-import { isEqual, isEmpty, map } from "lodash";
+import { isEqual, isEmpty } from "lodash";
 import React from "react";
 import PropTypes from "prop-types";
-import SelectWithVirtualScroll from "@/components/SelectWithVirtualScroll";
+import Select from "antd/lib/select";
 import Input from "antd/lib/input";
 import InputNumber from "antd/lib/input-number";
 import DateParameter from "@/components/dynamic-parameters/DateParameter";
@@ -9,6 +9,8 @@ import DateRangeParameter from "@/components/dynamic-parameters/DateRangeParamet
 import QueryBasedParameterInput from "./QueryBasedParameterInput";
 
 import "./ParameterValueInput.less";
+
+const { Option } = Select;
 
 const multipleValuesProps = {
   maxTagCount: 3,
@@ -96,19 +98,25 @@ class ParameterValueInput extends React.Component {
     const enumOptionsArray = enumOptions.split("\n").filter(v => v !== "");
     // Antd Select doesn't handle null in multiple mode
     const normalize = val => (parameter.multiValuesOptions && val === null ? [] : val);
-
     return (
-      <SelectWithVirtualScroll
+      <Select
         className={this.props.className}
         mode={parameter.multiValuesOptions ? "multiple" : "default"}
+        optionFilterProp="children"
         value={normalize(value)}
         onChange={this.onSelect}
-        options={map(enumOptionsArray, opt => ({ label: String(opt), value: opt }))}
+        dropdownMatchSelectWidth={false}
         showSearch
         showArrow
+        style={{ minWidth: 60 }}
         notFoundContent={isEmpty(enumOptionsArray) ? "No options available" : null}
-        {...multipleValuesProps}
-      />
+        {...multipleValuesProps}>
+        {enumOptionsArray.map(option => (
+          <Option key={option} value={option}>
+            {option}
+          </Option>
+        ))}
+      </Select>
     );
   }
 
@@ -119,6 +127,7 @@ class ParameterValueInput extends React.Component {
       <QueryBasedParameterInput
         className={this.props.className}
         mode={parameter.multiValuesOptions ? "multiple" : "default"}
+        optionFilterProp="children"
         parameter={parameter}
         value={value}
         queryId={queryId}

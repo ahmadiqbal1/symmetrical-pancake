@@ -2,7 +2,6 @@ import { without, find, includes, map, toLower } from "lodash";
 import React from "react";
 import PropTypes from "prop-types";
 
-import Link from "@/components/Link";
 import SelectItemsDialog from "@/components/SelectItemsDialog";
 import { Destination as DestinationType, UserProfile as UserType } from "@/components/proptypes";
 
@@ -13,7 +12,7 @@ import notification from "@/services/notification";
 import ListItemAddon from "@/components/groups/ListItemAddon";
 import EmailSettingsWarning from "@/components/EmailSettingsWarning";
 
-import CloseOutlinedIcon from "@ant-design/icons/CloseOutlined";
+import Icon from "antd/lib/icon";
 import Tooltip from "antd/lib/tooltip";
 import Switch from "antd/lib/switch";
 import Button from "antd/lib/button";
@@ -46,7 +45,7 @@ function ListItem({ destination: { name, type }, user, unsubscribe }) {
       )}
       {canUnsubscribe && (
         <Tooltip title="Remove" mouseEnterDelay={0.5}>
-          <CloseOutlinedIcon className="remove-button" onClick={unsubscribe} />
+          <Icon type="close" className="remove-button" onClick={unsubscribe} />
         </Tooltip>
       )}
     </li>
@@ -61,7 +60,7 @@ ListItem.propTypes = {
 
 export default class AlertDestinations extends React.Component {
   static propTypes = {
-    alertId: PropTypes.any.isRequired,
+    alertId: PropTypes.number.isRequired,
   };
 
   state = {
@@ -90,9 +89,9 @@ export default class AlertDestinations extends React.Component {
         <>
           <i className="fa fa-info-circle" /> Create new destinations in{" "}
           <Tooltip title="Opens page in a new tab.">
-            <Link href="destinations/new" target="_blank">
+            <a href="destinations/new" target="_blank">
               Alert Destinations
-            </Link>
+            </a>
           </Tooltip>
         </>
       ),
