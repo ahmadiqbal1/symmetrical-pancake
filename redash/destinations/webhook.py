@@ -18,7 +18,7 @@ class Webhook(BaseDestination):
                 "password": {"type": "string"},
             },
             "required": ["url"],
-            "secret": ["password", "url"],
+            "secret": ["password"],
         }
 
     @classmethod

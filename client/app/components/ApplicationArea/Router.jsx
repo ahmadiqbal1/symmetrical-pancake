@@ -1,8 +1,8 @@
-import { isFunction, startsWith, trimStart, trimEnd } from "lodash";
-import React, { useState, useEffect, useRef, useContext } from "react";
+import { isFunction, map, fromPairs, extend, startsWith, trimStart, trimEnd } from "lodash";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import UniversalRouter from "universal-router";
-import ErrorBoundary from "@redash/viz/lib/components/ErrorBoundary";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import location from "@/services/location";
 import url from "@/services/url";
 
@@ -12,12 +12,6 @@ function generateRouteKey() {
   return Math.random()
     .toString(32)
     .substr(2);
-}
-
-export const CurrentRouteContext = React.createContext(null);
-
-export function useCurrentRoute() {
-  return useContext(CurrentRouteContext);
 }
 
 export function stripBase(href) {
@@ -34,6 +28,18 @@ export function stripBase(href) {
   }
 
   return false;
+}
+
+function resolveRouteDependencies(route) {
+  return Promise.all(
+    map(route.resolve, (value, key) => {
+      value = isFunction(value) ? value(route.routeParams, route, location) : value;
+      return Promise.resolve(value).then(result => [key, result]);
+    })
+  ).then(results => {
+    route.routeParams = extend(route.routeParams, fromPairs(results));
+    return route;
+  });
 }
 
 export default function Router({ routes, onRouteChange }) {
@@ -59,7 +65,7 @@ export default function Router({ routes, onRouteChange }) {
           errorHandlerRef.current.reset();
         }
 
-        const pathname = stripBase(location.path) || "/";
+        const pathname = stripBase(location.path);
 
         // This is a optimization for route resolver: if current route was already resolved
         // from this path - do nothing. It also prevents router from using outdated route in a case
@@ -80,7 +86,10 @@ export default function Router({ routes, onRouteChange }) {
         router
           .resolve({ pathname })
           .then(route => {
-            if (!isAbandoned && currentPathRef.current === pathname) {
+            return isAbandoned || currentPathRef.current !== pathname ? null : resolveRouteDependencies(route);
+          })
+          .then(route => {
+            if (route) {
               setCurrentRoute({ ...route, key: generateRouteKey() });
             }
           })
@@ -101,7 +110,6 @@ export default function Router({ routes, onRouteChange }) {
 
     return () => {
       isAbandoned = true;
-      currentPathRef.current = null;
       unlisten();
     };
   }, [routes]);
@@ -115,11 +123,9 @@ export default function Router({ routes, onRouteChange }) {
   }
 
   return (
-    <CurrentRouteContext.Provider value={currentRoute}>
-      <ErrorBoundary ref={errorHandlerRef} renderError={error => <ErrorMessage error={error} />}>
-        {currentRoute.render(currentRoute)}
-      </ErrorBoundary>
-    </CurrentRouteContext.Provider>
+    <ErrorBoundary ref={errorHandlerRef} renderError={error => <ErrorMessage error={error} />}>
+      {currentRoute.render(currentRoute)}
+    </ErrorBoundary>
   );
 }
 

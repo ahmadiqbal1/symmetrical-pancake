@@ -153,7 +153,7 @@ destination_factory = ModelFactory(
     user=user_factory.create,
     name=Sequence("Destination {}"),
     type="slack",
-    options=lambda: ConfigurationContainer.from_json('{"url": "https://www.slack.com"}'),
+    options=ConfigurationContainer.from_json('{"url": "https://www.slack.com"}'),
 )
 
 alert_subscription_factory = ModelFactory(

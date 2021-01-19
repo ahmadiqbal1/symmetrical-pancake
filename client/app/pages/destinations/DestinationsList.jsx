@@ -1,8 +1,9 @@
-import { isEmpty, reject } from "lodash";
 import React from "react";
 import PropTypes from "prop-types";
-
 import Button from "antd/lib/button";
+import { isEmpty, isString, find, get } from "lodash";
+import Destination, { IMG_ROOT } from "@/services/destination";
+import { policy } from "@/services/policy";
 import routeWithUserSession from "@/components/ApplicationArea/routeWithUserSession";
 import navigateTo from "@/components/ApplicationArea/navigateTo";
 import CardsList from "@/components/cards-list/CardsList";
@@ -10,10 +11,6 @@ import LoadingState from "@/components/items-list/components/LoadingState";
 import CreateSourceDialog from "@/components/CreateSourceDialog";
 import helper from "@/components/dynamic-form/dynamicFormHelper";
 import wrapSettingsTab from "@/components/SettingsWrapper";
-
-import Destination, { IMG_ROOT } from "@/services/destination";
-import { policy } from "@/services/policy";
-import routes from "@/services/routes";
 
 class DestinationsList extends React.Component {
   static propTypes = {
@@ -60,26 +57,31 @@ class DestinationsList extends React.Component {
     const target = { options: {}, type: selectedType.type };
     helper.updateTargetWithValues(target, values);
 
-    return Destination.create(target).then(destination => {
-      this.setState({ loading: true });
-      Destination.query().then(destinations => this.setState({ destinations, loading: false }));
-      return destination;
-    });
+    return Destination.create(target)
+      .then(destination => {
+        this.setState({ loading: true });
+        Destination.query().then(destinations => this.setState({ destinations, loading: false }));
+        return destination;
+      })
+      .catch(error => {
+        const message = find([get(error, "response.data.message"), get(error, "message"), "Failed saving."], isString);
+        return Promise.reject(new Error(message));
+      });
   };
 
   showCreateSourceDialog = () => {
     CreateSourceDialog.showModal({
-      types: reject(this.state.destinationTypes, "deprecated"),
+      types: this.state.destinationTypes,
       sourceType: "Alert Destination",
       imageFolder: IMG_ROOT,
       onCreate: this.createDestination,
     })
-      .onClose((result = {}) => {
+      .result.then((result = {}) => {
         if (result.success) {
           navigateTo(`destinations/${result.data.id}`);
         }
       })
-      .onDismiss(() => {
+      .catch(() => {
         navigateTo("destinations", true);
       });
   };
@@ -131,7 +133,6 @@ class DestinationsList extends React.Component {
 }
 
 const DestinationsListPage = wrapSettingsTab(
-  "AlertDestinations.List",
   {
     permission: "admin",
     title: "Alert Destinations",
@@ -141,19 +142,15 @@ const DestinationsListPage = wrapSettingsTab(
   DestinationsList
 );
 
-routes.register(
-  "AlertDestinations.List",
+export default [
   routeWithUserSession({
     path: "/destinations",
     title: "Alert Destinations",
     render: pageProps => <DestinationsListPage {...pageProps} />,
-  })
-);
-routes.register(
-  "AlertDestinations.New",
+  }),
   routeWithUserSession({
     path: "/destinations/new",
     title: "Alert Destinations",
     render: pageProps => <DestinationsListPage {...pageProps} isNewDestinationPage />,
-  })
-);
+  }),
+];

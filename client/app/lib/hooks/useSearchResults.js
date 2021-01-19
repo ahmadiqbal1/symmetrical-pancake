@@ -11,7 +11,7 @@ export default function useSearchResults(fetch, { initialResults = null, debounc
     setIsLoading(true);
     currentSearchTerm.current = searchTerm;
     fetch(searchTerm)
-      .catch(() => initialResults)
+      .catch(() => null)
       .then(data => {
         if (searchTerm === currentSearchTerm.current && !isDestroyed.current) {
           setResult(data);

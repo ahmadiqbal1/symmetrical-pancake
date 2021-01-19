@@ -2,7 +2,6 @@ import React from "react";
 
 import Button from "antd/lib/button";
 import routeWithUserSession from "@/components/ApplicationArea/routeWithUserSession";
-import Link from "@/components/Link";
 import navigateTo from "@/components/ApplicationArea/navigateTo";
 import Paginator from "@/components/Paginator";
 
@@ -20,7 +19,6 @@ import wrapSettingsTab from "@/components/SettingsWrapper";
 
 import Group from "@/services/group";
 import { currentUser } from "@/services/auth";
-import routes from "@/services/routes";
 
 class GroupsList extends React.Component {
   static propTypes = {
@@ -31,7 +29,7 @@ class GroupsList extends React.Component {
     Columns.custom(
       (text, group) => (
         <div>
-          <Link href={"groups/" + group.id}>{group.name}</Link>
+          <a href={"groups/" + group.id}>{group.name}</a>
           {group.type === "builtin" && <span className="label label-default m-l-10">built-in</span>}
         </div>
       ),
@@ -43,8 +41,8 @@ class GroupsList extends React.Component {
     Columns.custom(
       (text, group) => (
         <Button.Group>
-          <Link.Button href={`groups/${group.id}`}>Members</Link.Button>
-          {currentUser.isAdmin && <Link.Button href={`groups/${group.id}/data_sources`}>Data Sources</Link.Button>}
+          <Button href={`groups/${group.id}`}>Members</Button>
+          {currentUser.isAdmin && <Button href={`groups/${group.id}/data_sources`}>Data Sources</Button>}
         </Button.Group>
       ),
       {
@@ -75,9 +73,11 @@ class GroupsList extends React.Component {
   ];
 
   createGroup = () => {
-    CreateGroupDialog.showModal().onClose(group =>
-      Group.create(group).then(newGroup => navigateTo(`groups/${newGroup.id}`))
-    );
+    CreateGroupDialog.showModal()
+      .result.then(group => {
+        Group.create(group).then(newGroup => navigateTo(`groups/${newGroup.id}`));
+      })
+      .catch(() => {}); // ignore dismiss
   };
 
   onGroupDeleted = () => {
@@ -113,10 +113,8 @@ class GroupsList extends React.Component {
               toggleSorting={controller.toggleSorting}
             />
             <Paginator
-              showPageSizeSelect
               totalCount={controller.totalItemsCount}
-              pageSize={controller.itemsPerPage}
-              onPageSizeChange={itemsPerPage => controller.updatePagination({ itemsPerPage })}
+              itemsPerPage={controller.itemsPerPage}
               page={controller.page}
               onChange={page => controller.updatePagination({ page })}
             />
@@ -128,7 +126,6 @@ class GroupsList extends React.Component {
 }
 
 const GroupsListPage = wrapSettingsTab(
-  "Groups.List",
   {
     permission: "list_users",
     title: "Groups",
@@ -151,11 +148,8 @@ const GroupsListPage = wrapSettingsTab(
   )
 );
 
-routes.register(
-  "Groups.List",
-  routeWithUserSession({
-    path: "/groups",
-    title: "Groups",
-    render: pageProps => <GroupsListPage {...pageProps} currentPage="groups" />,
-  })
-);
+export default routeWithUserSession({
+  path: "/groups",
+  title: "Groups",
+  render: pageProps => <GroupsListPage {...pageProps} currentPage="groups" />,
+});

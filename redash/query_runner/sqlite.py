@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 
-from redash.query_runner import BaseSQLQueryRunner, register, JobTimeoutException
+from redash.query_runner import BaseSQLQueryRunner, register
 from redash.utils import json_dumps, json_loads
 
 logger = logging.getLogger(__name__)
@@ -72,9 +72,10 @@ class Sqlite(BaseSQLQueryRunner):
             else:
                 error = "Query completed but it returned no data."
                 json_data = None
-        except (KeyboardInterrupt, JobTimeoutException):
+        except KeyboardInterrupt:
             connection.cancel()
-            raise
+            error = "Query cancelled by user."
+            json_data = None
         finally:
             connection.close()
         return json_data, error

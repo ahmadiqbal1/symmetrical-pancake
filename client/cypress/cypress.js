@@ -1,54 +1,28 @@
 /* eslint-disable import/no-extraneous-dependencies, no-console */
-const { find } = require("lodash");
 const atob = require("atob");
 const { execSync } = require("child_process");
-const { get, post } = require("request").defaults({ jar: true });
+const { post } = require("request").defaults({ jar: true });
 const { seedData } = require("./seed-data");
-const fs = require("fs");
-var Cookie = require("request-cookies").Cookie;
 
-let cypressConfigBaseUrl;
-try {
-  const cypressConfig = JSON.parse(fs.readFileSync("cypress.json"));
-  cypressConfigBaseUrl = cypressConfig.baseUrl;
-} catch (e) {}
-
-const baseUrl = process.env.CYPRESS_baseUrl || cypressConfigBaseUrl || "http://localhost:5000";
+const baseUrl = process.env.CYPRESS_baseUrl || "http://localhost:5000";
 
 function seedDatabase(seedValues) {
-  get(baseUrl + "/login", (_, { headers }) => {
-    const request = seedValues.shift();
-    const data = request.type === "form" ? { formData: request.data } : { json: request.data };
+  const request = seedValues.shift();
+  const data = request.type === "form" ? { formData: request.data } : { json: request.data };
 
-    if (headers["set-cookie"]) {
-      const cookies = headers["set-cookie"].map(cookie => new Cookie(cookie));
-      const csrfCookie = find(cookies, { key: "csrf_token" });
-      if (csrfCookie) {
-        if (request.type === "form") {
-          data["formData"] = { ...data["formData"], csrf_token: csrfCookie.value };
-        } else {
-          data["headers"] = { "X-CSRFToken": csrfCookie.value };
-        }
-      }
+  post(baseUrl + request.route, data, (err, response) => {
+    const result = response ? response.statusCode : err;
+    console.log("POST " + request.route + " - " + result);
+    if (seedValues.length) {
+      seedDatabase(seedValues);
     }
-
-    post(baseUrl + request.route, data, (err, response) => {
-      const result = response ? response.statusCode : err;
-      console.log("POST " + request.route + " - " + result);
-      if (seedValues.length) {
-        seedDatabase(seedValues);
-      }
-    });
   });
-}
-
-function buildServer() {
-  console.log("Building the server...");
-  execSync("docker-compose -p cypress build", { stdio: "inherit" });
 }
 
 function startServer() {
   console.log("Starting the server...");
+
+  execSync("docker-compose -p cypress build --build-arg skip_ds_deps=true", { stdio: "inherit" });
   execSync("docker-compose -p cypress up -d", { stdio: "inherit" });
   execSync("docker-compose -p cypress run server create_db", { stdio: "inherit" });
 }
@@ -79,7 +53,7 @@ function runCypressCI() {
   }
 
   execSync(
-    "COMMIT_INFO_MESSAGE=$(git show -s --format=%s) docker-compose run --name cypress cypress ./node_modules/.bin/percy exec -t 300 -- ./node_modules/.bin/cypress run --record",
+    "docker-compose run cypress ./node_modules/.bin/percy exec -t 300 -- ./node_modules/.bin/cypress run --record",
     { stdio: "inherit" }
   );
 }
@@ -87,14 +61,8 @@ function runCypressCI() {
 const command = process.argv[2] || "all";
 
 switch (command) {
-  case "build":
-    buildServer();
-    break;
   case "start":
     startServer();
-    if (!process.argv.includes("--skip-db-seed")) {
-      seedDatabase(seedData);
-    }
     break;
   case "db-seed":
     seedDatabase(seedData);
@@ -118,6 +86,6 @@ switch (command) {
     stopServer();
     break;
   default:
-    console.log("Usage: npm run cypress [build|start|db-seed|open|run|stop]");
+    console.log("Usage: npm run cypress [start|db-seed|open|run|stop]");
     break;
 }

@@ -155,9 +155,10 @@ class AxibaseTSD(BaseQueryRunner):
         except SQLException as e:
             json_data = None
             error = e.content
-        except (KeyboardInterrupt, InterruptException, JobTimeoutException):
+        except (KeyboardInterrupt, InterruptException):
             sql.cancel_query(query_id)
-            raise
+            error = "Query cancelled by user."
+            json_data = None
 
         return json_data, error
 
@@ -175,7 +176,7 @@ class AxibaseTSD(BaseQueryRunner):
             minInsertDate=self.configuration.get("min_insert_date", None),
             limit=self.configuration.get("limit", 5000),
         )
-        metrics_list = [i.name for i in ml]
+        metrics_list = [i.name.encode("utf-8") for i in ml]
         metrics_list.append("atsd_series")
         schema = {}
         default_columns = [

@@ -155,9 +155,10 @@ class SqlServer(BaseSQLQueryRunner):
                 # Connection errors are `args[0][1]`
                 error = e.args[0][1]
             json_data = None
-        except (KeyboardInterrupt, JobTimeoutException):
+        except KeyboardInterrupt:
             connection.cancel()
-            raise
+            error = "Query cancelled by user."
+            json_data = None
         finally:
             if connection:
                 connection.close()

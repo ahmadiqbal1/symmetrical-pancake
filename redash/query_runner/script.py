@@ -77,6 +77,8 @@ class Script(BaseQueryRunner):
             return None, str(e)
         except subprocess.CalledProcessError as e:
             return None, str(e)
+        except KeyboardInterrupt:
+            return None, "Query cancelled by user."
 
 
 register(Script)

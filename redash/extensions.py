@@ -6,11 +6,11 @@ from importlib_metadata import entry_points
 # The global Redash extension registry
 extensions = odict()
 
-# The periodic RQ jobs as provided by Redash extensions.
-# This is separate from the internal periodic RQ jobs
-# since the extension job discovery phase is
+# The periodic Celery tasks as provided by Redash extensions.
+# This is separate from the internal periodic Celery tasks in
+# celery_schedule since the extension task discovery phase is
 # after the configuration has already happened.
-periodic_jobs = odict()
+periodic_tasks = odict()
 
 extension_logger = logging.getLogger(__name__)
 
@@ -69,30 +69,30 @@ def load_extensions(app):
     entry_point_loader("redash.extensions", extensions, logger=app.logger, app=app)
 
 
-def load_periodic_jobs(logger=None):
-    """Load the periodic jobs as defined in Redash extensions.
+def load_periodic_tasks(logger=None):
+    """Load the periodic tasks as defined in Redash extensions.
 
     The periodic task entry point needs to return a set of parameters
-    that can be passed to RQ Scheduler API:
+    that can be passed to Celery's add_periodic_task:
 
-        https://github.com/rq/rq-scheduler#periodic--repeated-jobs
+        https://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#entries
 
     E.g.::
 
         def add_two_and_two():
             return {
-                "func": add,
-                "args": [2, 2]
-                "interval": 10,  # in seconds or as a timedelta
+                'name': 'add 2 and 2 every 10 seconds'
+                'sig': add.s(2, 2),
+                'schedule': 10.0,  # in seconds or a timedelta
             }
 
-    and then registered with an entry point under the "redash.periodic_jobs"
+    and then registered with an entry point under the "redash.periodic_tasks"
     group, e.g. in your setup.py::
 
         setup(
             # ...
             entry_points={
-                "redash.periodic_jobs": [
+                "redash.periodic_tasks": [
                     "add_two_and_two = calculus.addition:add_two_and_two",
                 ]
                 # ...
@@ -100,7 +100,7 @@ def load_periodic_jobs(logger=None):
             # ...
         )
     """
-    entry_point_loader("redash.periodic_jobs", periodic_jobs, logger=logger)
+    entry_point_loader("redash.periodic_tasks", periodic_tasks, logger=logger)
 
 
 def init_app(app):

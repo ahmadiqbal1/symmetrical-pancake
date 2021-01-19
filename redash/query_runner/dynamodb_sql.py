@@ -133,10 +133,14 @@ class DynamoDBSQL(BaseSQLQueryRunner):
                 e.lineno, e.column, e.line
             )
             json_data = None
-        except (KeyboardInterrupt, JobTimeoutException):
+        except (SyntaxError, RuntimeError) as e:
+            error = str(e)
+            json_data = None
+        except KeyboardInterrupt:
             if engine and engine.connection:
                 engine.connection.cancel()
-            raise
+            error = "Query cancelled by user."
+            json_data = None
 
         return json_data, error
 

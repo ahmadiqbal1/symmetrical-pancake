@@ -74,7 +74,7 @@ function Filters({ filters, onChange }) {
   onChange = createFilterChangeHandler(filters, onChange);
 
   return (
-    <div className="filters-wrapper" data-test="Filters">
+    <div className="filters-wrapper">
       <div className="container bg-white">
         <div className="row">
           {map(filters, filter => {
@@ -83,10 +83,7 @@ function Filters({ filters, onChange }) {
             ));
 
             return (
-              <div
-                key={filter.name}
-                className="col-sm-6 p-l-0 filter-container"
-                data-test={`FilterName-${filter.name}`}>
+              <div key={filter.name} className="col-sm-6 p-l-0 filter-container">
                 <label>{filter.friendlyName}</label>
                 {options.length === 0 && <Select className="w-100" disabled value="No values" />}
                 {options.length > 0 && (
@@ -105,17 +102,14 @@ function Filters({ filters, onChange }) {
                     allowClear={filter.multiple}
                     optionFilterProp="children"
                     showSearch
-                    maxTagCount={3}
-                    maxTagTextLength={10}
-                    maxTagPlaceholder={num => `+${num.length} more`}
                     onChange={values => onChange(filter, values)}>
                     {!filter.multiple && options}
                     {filter.multiple && [
-                      <Select.Option key={NONE_VALUES} data-test="ClearOption">
+                      <Select.Option key={NONE_VALUES}>
                         <i className="fa fa-square-o m-r-5" />
                         Clear
                       </Select.Option>,
-                      <Select.Option key={ALL_VALUES} data-test="SelectAllOption">
+                      <Select.Option key={ALL_VALUES}>
                         <i className="fa fa-check-square-o m-r-5" />
                         Select All
                       </Select.Option>,

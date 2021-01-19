@@ -15,7 +15,8 @@ from redash.utils.configuration import ConfigurationContainer, ValidationError
 class DestinationTypeListResource(BaseResource):
     @require_admin
     def get(self):
-        return [q.to_dict() for q in destinations.values()]
+        available_destinations = [q for q in destinations.values() if not q.deprecated]
+        return [q.to_dict() for q in available_destinations]
 
 
 class DestinationResource(BaseResource):
