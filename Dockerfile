@@ -6,12 +6,9 @@ ARG skip_frontend_build
 ENV CYPRESS_INSTALL_BINARY=0
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 
-RUN useradd -m -d /frontend redash
-USER redash
-
 WORKDIR /frontend
-COPY --chown=redash package.json package-lock.json /frontend/
-COPY --chown=redash viz-lib /frontend/viz-lib
+COPY package.json package-lock.json /frontend/
+COPY viz-lib /frontend/viz-lib
 
 # Controls whether to instrument code for coverage information
 ARG code_coverage
@@ -19,8 +16,8 @@ ENV BABEL_ENV=${code_coverage:+test}
 
 RUN if [ "x$skip_frontend_build" = "x" ] ; then npm ci --unsafe-perm; fi
 
-COPY --chown=redash client /frontend/client
-COPY --chown=redash webpack.config.js /frontend/
+COPY client /frontend/client
+COPY webpack.config.js /frontend/
 RUN if [ "x$skip_frontend_build" = "x" ] ; then npm run build; else mkdir -p /frontend/client/dist && touch /frontend/client/dist/multi_org.html && touch /frontend/client/dist/index.html; fi
 FROM python:3.7-slim
 

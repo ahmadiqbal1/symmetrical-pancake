@@ -25,6 +25,8 @@ import CheckOutlinedIcon from "@ant-design/icons/CheckOutlined";
 
 import "./ParameterMappingInput.less";
 
+const { Option } = Select;
+
 export const MappingType = {
   DashboardAddNew: "dashboard-add-new",
   DashboardMapToExisting: "dashboard-map-to-existing",
@@ -206,9 +208,19 @@ export class ParameterMappingInput extends React.Component {
 
   renderDashboardMapToExisting() {
     const { mapping, existingParamNames } = this.props;
-    const options = map(existingParamNames, paramName => ({ label: paramName, value: paramName }));
 
-    return <Select value={mapping.mapTo} onChange={mapTo => this.updateParamMapping({ mapTo })} options={options} />;
+    return (
+      <Select
+        value={mapping.mapTo}
+        onChange={mapTo => this.updateParamMapping({ mapTo })}
+        dropdownMatchSelectWidth={false}>
+        {map(existingParamNames, name => (
+          <Option value={name} key={name}>
+            {name}
+          </Option>
+        ))}
+      </Select>
+    );
   }
 
   renderStaticValue() {
@@ -346,7 +358,7 @@ class MappingEditor extends React.Component {
         content={this.renderContent()}
         visible={visible}
         onVisibleChange={this.onVisibleChange}>
-        <Button size="small" type="dashed" data-test={`EditParamMappingButton-${mapping.param.name}`}>
+        <Button size="small" type="dashed" data-test={`EditParamMappingButon-${mapping.param.name}`}>
           <EditOutlinedIcon />
         </Button>
       </Popover>

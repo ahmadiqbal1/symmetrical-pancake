@@ -9,12 +9,10 @@ import routeWithUserSession from "@/components/ApplicationArea/routeWithUserSess
 import Resizable from "@/components/Resizable";
 import Parameters from "@/components/Parameters";
 import EditInPlace from "@/components/EditInPlace";
-import DynamicComponent from "@/components/DynamicComponent";
 import recordEvent from "@/services/recordEvent";
+import DynamicComponent from "@/components/DynamicComponent";
 import { ExecutionStatus } from "@/services/query-result";
 import routes from "@/services/routes";
-import notification from "@/services/notification";
-import * as queryFormat from "@/lib/queryFormat";
 
 import QueryPageHeader from "./components/QueryPageHeader";
 import QueryMetadata from "./components/QueryMetadata";
@@ -39,6 +37,7 @@ import useEditScheduleDialog from "./hooks/useEditScheduleDialog";
 import useAddVisualizationDialog from "./hooks/useAddVisualizationDialog";
 import useEditVisualizationDialog from "./hooks/useEditVisualizationDialog";
 import useDeleteVisualization from "./hooks/useDeleteVisualization";
+import useFormatQuery from "./hooks/useFormatQuery";
 import useUpdateQuery from "./hooks/useUpdateQuery";
 import useUpdateQueryDescription from "./hooks/useUpdateQueryDescription";
 import useUnsavedChangesAlert from "./hooks/useUnsavedChangesAlert";
@@ -96,16 +95,7 @@ function QuerySource(props) {
 
   const updateQuery = useUpdateQuery(query, setQuery);
   const updateQueryDescription = useUpdateQueryDescription(query, setQuery);
-  const querySyntax = dataSource ? dataSource.syntax || "sql" : null;
-  const isFormatQueryAvailable = queryFormat.isFormatQueryAvailable(querySyntax);
-  const formatQuery = () => {
-    try {
-      const formattedQueryText = queryFormat.formatQuery(query.query, querySyntax);
-      setQuery(extend(query.clone(), { query: formattedQueryText }));
-    } catch (err) {
-      notification.error(String(err));
-    }
-  };
+  const formatQuery = useFormatQuery(query, dataSource ? dataSource.syntax : null, setQuery);
 
   const handleDataSourceChange = useCallback(
     dataSourceId => {
@@ -201,7 +191,6 @@ function QuerySource(props) {
           dataSource={dataSource}
           sourceMode
           selectedVisualization={selectedVisualization}
-          headerExtra={<DynamicComponent name="QuerySource.HeaderExtra" query={query} />}
           onChange={setQuery}
         />
       </div>
@@ -276,11 +265,8 @@ function QuerySource(props) {
                         onClick: openAddNewParameterDialog,
                       }}
                       formatButtonProps={{
-                        title: isFormatQueryAvailable
-                          ? "Format Query"
-                          : "Query formatting is not supported for your Data Source syntax",
-                        disabled: !dataSource || !isFormatQueryAvailable,
-                        shortcut: isFormatQueryAvailable ? "mod+shift+f" : null,
+                        title: "Format Query",
+                        shortcut: "mod+shift+f",
                         onClick: formatQuery,
                       }}
                       saveButtonProps={
@@ -336,7 +322,6 @@ function QuerySource(props) {
                   <div className="query-parameters-wrapper">
                     <Parameters
                       editable={queryFlags.canEdit}
-                      sortable={queryFlags.canEdit}
                       disableUrlUpdate={queryFlags.isNew}
                       parameters={parameters}
                       onPendingValuesChange={() => updateParametersDirtyFlag()}

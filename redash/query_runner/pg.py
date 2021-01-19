@@ -169,7 +169,7 @@ class PostgreSQL(BaseSQLQueryRunner):
             },
             "order": ["host", "port", "user", "password"],
             "required": ["dbname"],
-            "secret": ["password", "sslrootcertFile", "sslcertFile", "sslkeyFile"],
+            "secret": ["password"],
             "extra_options": [
                 "sslmode",
                 "sslrootcertFile",

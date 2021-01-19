@@ -52,7 +52,7 @@ export default function MenuButton({ doDelete, canEdit, mute, unmute, muted }) {
             )}
           </Menu.Item>
           <Menu.Item>
-            <a onClick={confirmDelete}>Delete</a>
+            <a onClick={confirmDelete}>Delete Alert</a>
           </Menu.Item>
         </Menu>
       }>

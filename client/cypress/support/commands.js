@@ -2,8 +2,6 @@
 
 import "@percy/cypress"; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
-import "@testing-library/cypress/add-commands";
-
 const { each } = Cypress._;
 
 Cypress.Commands.add("login", (email = "admin@redash.io", password = "password") => {

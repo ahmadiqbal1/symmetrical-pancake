@@ -2,9 +2,9 @@ import _ from "lodash";
 import { axios } from "@/services/axios";
 import dashboardGridOptions from "@/config/dashboard-grid-options";
 import Widget from "./widget";
+import { currentUser } from "@/services/auth";
 import location from "@/services/location";
 import { cloneParameter } from "@/services/parameters";
-import { policy } from "@/services/policy";
 
 export const urlForDashboard = ({ id, slug }) => `dashboards/${id}-${slug}`;
 
@@ -179,7 +179,7 @@ Dashboard.prepareDashboardWidgets = prepareDashboardWidgets;
 Dashboard.prepareWidgetsForDashboard = prepareWidgetsForDashboard;
 
 Dashboard.prototype.canEdit = function canEdit() {
-  return policy.canEdit(this);
+  return currentUser.canEdit(this) || this.can_edit;
 };
 
 Dashboard.prototype.getParametersDefs = function getParametersDefs() {
@@ -208,18 +208,11 @@ Dashboard.prototype.getParametersDefs = function getParametersDefs() {
         });
     }
   });
-  const resultingGlobalParams = _.values(
+  return _.values(
     _.each(globalParams, param => {
       param.setValue(param.value); // apply global param value to all locals
       param.fromUrlParams(queryParams); // try to initialize from url (may do nothing)
     })
-  );
-
-  // order dashboard params using paramOrder
-  return _.sortBy(resultingGlobalParams, param =>
-    _.includes(this.options.globalParamOrder, param.name)
-      ? _.indexOf(this.options.globalParamOrder, param.name)
-      : _.size(this.options.globalParamOrder)
   );
 };
 

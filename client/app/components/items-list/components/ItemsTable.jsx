@@ -67,10 +67,10 @@ export const Columns = {
       overrides
     );
   },
-  timeAgo(overrides, timeAgoCustomProps = undefined) {
+  timeAgo(overrides) {
     return extend(
       {
-        render: value => <TimeAgo date={value} {...timeAgoCustomProps} />,
+        render: value => <TimeAgo date={value} />,
       },
       overrides
     );
@@ -110,8 +110,6 @@ export default class ItemsTable extends React.Component {
     orderByField: PropTypes.string,
     orderByReverse: PropTypes.bool,
     toggleSorting: PropTypes.func,
-    "data-test": PropTypes.string,
-    rowKey: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
   };
 
   static defaultProps = {
@@ -153,17 +151,6 @@ export default class ItemsTable extends React.Component {
     );
   }
 
-  getRowKey = record => {
-    const { rowKey } = this.props;
-    if (rowKey) {
-      if (isFunction(rowKey)) {
-        return rowKey(record.item);
-      }
-      return record.item[rowKey];
-    }
-    return record.key;
-  };
-
   render() {
     const tableDataProps = {
       columns: this.prepareColumns(),
@@ -197,10 +184,9 @@ export default class ItemsTable extends React.Component {
       <Table
         className={classNames("table-data", { "ant-table-headerless": !showHeader })}
         showHeader={showHeader}
-        rowKey={this.getRowKey}
+        rowKey={row => row.key}
         pagination={false}
         onRow={onTableRow}
-        data-test={this.props["data-test"]}
         {...tableDataProps}
       />
     );

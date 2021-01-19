@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 
 import HelpTrigger from "@/components/HelpTrigger";
-import DynamicComponent from "@/components/DynamicComponent";
 import { Alert as AlertType } from "@/components/proptypes";
 
 import Form from "antd/lib/form";
@@ -53,7 +52,6 @@ export default class AlertEdit extends React.Component {
     return (
       <>
         <Title name={name} alert={alert} onChange={onNameChange} editMode>
-          <DynamicComponent name="AlertEdit.HeaderExtra" alert={alert} />
           <Button className="m-r-5" onClick={() => this.cancel()}>
             <i className="fa fa-times m-r-5" />
             Cancel
