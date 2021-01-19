@@ -1,48 +1,26 @@
-import {
-  isNil,
-  map,
-  extend,
-  sortBy,
-  includes,
-  filter,
-  reduce,
-  find,
-  keys,
-  values,
-  identity,
-  mapValues,
-  every,
-  isNaN,
-  isNumber,
-  isString,
-} from "lodash";
+import { isNil, map, extend, sortBy, includes, filter, reduce, find, keys, values, identity } from "lodash";
 import d3 from "d3";
-import d3sankey, { NodeType, LinkType, SourceTargetType, DType } from "./d3sankey";
-import { SankeyDataType } from ".";
+import d3sankey from "./d3sankey";
 
-export type ExtendedSankeyDataType = Partial<SankeyDataType> & { nodes: any[]; links: any[] };
-
-function getConnectedNodes(node: NodeType) {
-  console.log(node);
+function getConnectedNodes(node: any) {
   // source link = this node is the source, I need the targets
   const nodes: any = [];
-  node.sourceLinks.forEach((link: LinkType) => {
+  node.sourceLinks.forEach((link: any) => {
     nodes.push(link.target);
   });
-  node.targetLinks.forEach((link: LinkType) => {
+  node.targetLinks.forEach((link: any) => {
     nodes.push(link.source);
   });
 
   return nodes;
 }
 
-function graph(data: ExtendedSankeyDataType["rows"]) {
+function graph(data: any) {
   const nodesDict = {};
   const links = {};
-  const nodes: any[] = [];
+  const nodes: any = [];
 
   const validKey = (key: any) => key !== "value";
-  // @ts-expect-error
   const dataKeys = sortBy(filter(keys(data[0]), validKey), identity);
 
   function normalizeName(name: any) {
@@ -53,7 +31,7 @@ function graph(data: ExtendedSankeyDataType["rows"]) {
     return "Exit";
   }
 
-  function getNode(name: string, level: any) {
+  function getNode(name: any, level: any) {
     name = normalizeName(name);
     const key = `${name}:${String(level)}`;
     // @ts-expect-error ts-migrate(7053) FIXME: Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
@@ -67,7 +45,7 @@ function graph(data: ExtendedSankeyDataType["rows"]) {
     return node;
   }
 
-  function getLink(source: SourceTargetType, target: SourceTargetType) {
+  function getLink(source: any, target: any) {
     // @ts-expect-error ts-migrate(2538) FIXME: Type 'any[]' cannot be used as an index type.
     let link = links[[source, target]];
     if (!link) {
@@ -90,7 +68,6 @@ function graph(data: ExtendedSankeyDataType["rows"]) {
     link.value += parseInt(value, 10);
   }
 
-  // @ts-expect-error
   data.forEach((row: any) => {
     addLink(row[dataKeys[0]], row[dataKeys[1]], row.value || 0, 1);
     addLink(row[dataKeys[1]], row[dataKeys[2]], row.value || 0, 2);
@@ -108,14 +85,13 @@ function graph(data: ExtendedSankeyDataType["rows"]) {
   };
 }
 
-function spreadNodes(height: any, data: ExtendedSankeyDataType) {
+function spreadNodes(height: any, data: any) {
   const nodesByBreadth = d3
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'nest' does not exist on type 'typeof imp... Remove this comment to see the full error message
     .nest()
-    .key((d: DType) => d.x)
+    .key((d: any) => d.x)
     .entries(data.nodes)
-    // @ts-expect-error
-    .map((d: DType) => d.values);
+    .map((d: any) => d.values);
 
   nodesByBreadth.forEach((nodes: any) => {
     nodes = filter(
@@ -138,39 +114,14 @@ function spreadNodes(height: any, data: ExtendedSankeyDataType) {
   });
 }
 
-function isDataValid(data: ExtendedSankeyDataType) {
+function isDataValid(data: any) {
   // data should contain column named 'value', otherwise no reason to render anything at all
-  if (!data || !find(data.columns, c => c.name === "value")) {
-    return false;
-  }
-  // prepareData will have coerced any invalid data rows into NaN, which is verified below
-  return every(data.rows, row =>
-    every(row, v => {
-      if (!v || isString(v)) {
-        return true;
-      }
-      return isFinite(v);
-    })
-  );
+  return data && !!find(data.columns, c => c.name === "value");
 }
 
-// will coerce number strings into valid numbers
-function prepareDataRows(rows: ExtendedSankeyDataType["rows"]) {
-  return map(rows, row =>
-    mapValues(row, v => {
-      if (!v || isNumber(v)) {
-        return v;
-      }
-      return isNaN(parseFloat(v)) ? v : parseFloat(v);
-    })
-  );
-}
-
-export default function initSankey(data: ExtendedSankeyDataType) {
-  data.rows = prepareDataRows(data.rows) as ExtendedSankeyDataType["rows"];
-
+export default function initSankey(data: any) {
   if (!isDataValid(data)) {
-    return (element: HTMLDivElement) => {
+    return (element: any) => {
       d3.select(element)
         .selectAll("*")
         .remove();
@@ -178,10 +129,9 @@ export default function initSankey(data: ExtendedSankeyDataType) {
   }
 
   data = graph(data.rows);
-  // @ts-expect-error
-  const format = (d: DType) => d3.format(",.0f")(d); // TODO: editor option ?
+  const format = (d: any) => d3.format(",.0f")(d); // TODO: editor option ?
 
-  return (element: HTMLDivElement) => {
+  return (element: any) => {
     d3.select(element)
       .selectAll("*")
       .remove();
@@ -200,7 +150,7 @@ export default function initSankey(data: ExtendedSankeyDataType) {
     }
 
     // append the svg canvas to the page
-    const svg: d3.Selection<SVGGElement, any, any, any> = d3
+    const svg = d3
       .select(element)
       .append("svg")
       .attr("class", "sankey")
@@ -211,6 +161,7 @@ export default function initSankey(data: ExtendedSankeyDataType) {
 
     // Set the sankey diagram properties
     const sankey = d3sankey()
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'nodeWidth' does not exist on type '{}'.
       .nodeWidth(15)
       .nodePadding(10)
       .size([width, height]);
@@ -232,13 +183,17 @@ export default function initSankey(data: ExtendedSankeyDataType) {
       .data(data.links)
       .enter()
       .append("path")
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       .filter(l => l.target.name !== "Exit")
       .attr("class", "link")
       .attr("d", path)
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       .style("stroke-width", d => Math.max(1, d.dy))
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       .sort((a, b) => b.dy - a.dy);
 
     // add the link titles
+    // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
     link.append("title").text(d => `${d.source.name} → ${d.target.name}\n${format(d.value)}`);
 
     const node = svg
@@ -247,11 +202,13 @@ export default function initSankey(data: ExtendedSankeyDataType) {
       .data(data.nodes)
       .enter()
       .append("g")
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       .filter(n => n.name !== "Exit")
       .attr("class", "node")
-      .attr("transform", (d: DType) => `translate(${d.x},${d.y})`);
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+      .attr("transform", d => `translate(${d.x},${d.y})`);
 
-    function nodeMouseOver(currentNode: NodeType) {
+    function nodeMouseOver(currentNode: any) {
       let nodes = getConnectedNodes(currentNode);
       nodes = map(nodes, i => i.id);
       node
@@ -259,6 +216,7 @@ export default function initSankey(data: ExtendedSankeyDataType) {
           if (d === currentNode) {
             return false;
           }
+          // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
           return !includes(nodes, d.id);
         })
         .style("opacity", 0.2);
@@ -276,27 +234,33 @@ export default function initSankey(data: ExtendedSankeyDataType) {
     node.on("mouseover", nodeMouseOver).on("mouseout", nodeMouseOut);
 
     // add the rectangles for the nodes
-    // FIXME: d is DType, but d3 will not accept a nonstandard function
+    // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
     node
       .append("rect")
-      .attr("height", (d: any) => d.dy)
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+      .attr("height", d => d.dy)
       .attr("width", sankey.nodeWidth())
-      .style("fill", (d: any) => d.color)
-      // @ts-expect-error
-      .style("stroke", (d: any) => d3.rgb(d.color).darker(2))
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+      .style("fill", d => d.color)
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+      .style("stroke", d => d3.rgb(d.color).darker(2))
       .append("title")
-      .text((d: any) => `${d.name}\n${format(d.value)}`);
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+      .text(d => `${d.name}\n${format(d.value)}`);
 
     // add in the title for the nodes
     node
       .append("text")
       .attr("x", -6)
-      .attr("y", (d: any) => d.dy / 2)
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+      .attr("y", d => d.dy / 2)
       .attr("dy", ".35em")
       .attr("text-anchor", "end")
       .attr("transform", null)
-      .text((d: any) => d.name)
-      .filter((d: any) => d.x < width / 2)
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+      .text(d => d.name)
+      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+      .filter(d => d.x < width / 2)
       .attr("x", 6 + sankey.nodeWidth())
       .attr("text-anchor", "start");
   };
