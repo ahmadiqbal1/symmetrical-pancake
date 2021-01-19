@@ -1,0 +1,71 @@
+version: 2.0
+jobs:
+  unit-tests:
+    environment:
+      COMPOSE_FILE: .circleci/docker-compose.circle.yml
+      COMPOSE_PROJECT_NAME: redash
+    docker:
+      - image: circleci/buildpack-deps:xenial
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run:
+          name: Build Docker Images
+          command: |
+            set -x
+            docker-compose up -d
+            sleep 10
+      - run:
+          name: Create Test Database
+          command: docker-compose run --rm postgres psql -h postgres -U postgres -c "create database tests;"
+      - run:
+          name: Run Tests
+          command: docker-compose run --name tests redash tests --junitxml=junit.xml tests/
+      - run:
+          name: Copy Test Results
+          command: |
+            mkdir -p /tmp/test-results/unit-tests
+            docker cp tests:/app/coverage.xml ./coverage.xml 
+            docker cp tests:/app/junit.xml /tmp/test-results/unit-tests/results.xml
+      - store_test_results:
+          path: /tmp/test-results
+      - store_artifacts:
+          path: coverage.xml
+  build-tarball:
+    docker:
+      - image: circleci/node:8
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm run build
+      - run: .circleci/update_version
+      - run: .circleci/pack
+      - store_artifacts:
+          path: /tmp/artifacts/
+  build-docker-image:
+    docker:
+      - image: circleci/buildpack-deps:xenial
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run: .circleci/update_version
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker build -t redash/redash:$(.circleci/docker_tag) .
+      - run: docker push redash/redash:$(.circleci/docker_tag)
+workflows:
+  version: 2
+  integration_tests:
+    jobs:
+      - integration-tests:
+          filters:
+             branches:
+               only: master
+  build:
+    jobs:
+      - unit-tests
+      - build-tarball:
+           requires:
+             - unit-tests
+      - build-docker-image:
+           requires:
+             - unit-tests
