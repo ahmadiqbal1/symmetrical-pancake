@@ -11,7 +11,6 @@ import { clientConfig } from "@/services/auth";
 import notification from "@/services/notification";
 
 import "./index.less";
-import { policy } from "@/services/policy";
 
 function ApiKeyDialog({ dialog, ...props }) {
   const [query, setQuery] = useState(props.query);
@@ -46,7 +45,7 @@ function ApiKeyDialog({ dialog, ...props }) {
         <div className="m-b-20">
           <Input.Group compact>
             <Input readOnly value={query.api_key} />
-            {policy.canEdit(query) && (
+            {query.can_edit && (
               <Button disabled={updatingApiKey} loading={updatingApiKey} onClick={regenerateQueryApiKey}>
                 Regenerate
               </Button>

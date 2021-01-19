@@ -67,6 +67,10 @@ export default function DatabricksSchemaBrowser({
     setExpandedFlags({});
   }, [currentDatabaseName]);
 
+  if (schema.length === 0 && databases.length === 0 && !(loadingDatabases || loadingSchema)) {
+    return null;
+  }
+
   function toggleTable(tableName) {
     const table = find(schema, { name: tableName });
     if (!expandedFlags[tableName] && get(table, "loading", false)) {

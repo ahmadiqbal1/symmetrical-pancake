@@ -32,7 +32,6 @@ class PagerDuty(BaseDestination):
                     "title": "Description for the event, defaults to alert name",
                 },
             },
-            "secret": ["integration_key"],
             "required": ["integration_key"],
         }
 

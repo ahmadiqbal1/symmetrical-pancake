@@ -1,11 +1,3 @@
-import { dragParam } from "../../support/parameters";
-
-function openAndSearchAntdDropdown(testId, paramOption) {
-  cy.getByTestId(testId)
-    .find(".ant-select-selection-search-input")
-    .type(paramOption, { force: true });
-}
-
 describe("Parameter", () => {
   const expectDirtyStateChange = edit => {
     cy.getByTestId("ParameterName-test-parameter")
@@ -115,13 +107,11 @@ describe("Parameter", () => {
     });
 
     it("updates the results after selecting a value", () => {
-      openAndSearchAntdDropdown("ParameterName-test-parameter", "value2"); // asserts option filter prop
-
-      // only the filtered option should be on the DOM
-      cy.get(".ant-select-item-option")
-        .should("have.length", 1)
-        .and("contain", "value2")
+      cy.getByTestId("ParameterName-test-parameter")
+        .find(".ant-select")
         .click();
+
+      cy.contains(".ant-select-item-option", "value2").click();
 
       cy.getByTestId("ParameterApplyButton").click();
       // ensure that query is being executed
@@ -227,22 +217,6 @@ describe("Parameter", () => {
 
           cy.createQuery(queryData, false).then(({ id }) => cy.visit(`/queries/${id}/source`));
         });
-      });
-
-      it("updates the results after selecting a value", () => {
-        openAndSearchAntdDropdown("ParameterName-test-parameter", "value2"); // asserts option filter prop
-
-        // only the filtered option should be on the DOM
-        cy.get(".ant-select-item-option")
-          .should("have.length", 1)
-          .and("contain", "value2")
-          .click();
-
-        cy.getByTestId("ParameterApplyButton").click();
-        // ensure that query is being executed
-        cy.getByTestId("QueryExecutionStatus").should("exist");
-
-        cy.getByTestId("TableVisualization").should("contain", "2");
       });
 
       it("supports multi-selection", () => {
@@ -600,6 +574,16 @@ describe("Parameter", () => {
 
       cy.get("body").type("{alt}D"); // hide schema browser
     });
+
+    const dragParam = (paramName, offsetLeft, offsetTop) => {
+      cy.getByTestId(`DragHandle-${paramName}`)
+        .trigger("mouseover")
+        .trigger("mousedown");
+
+      cy.get(".parameter-dragged .drag-handle")
+        .trigger("mousemove", offsetLeft, offsetTop, { force: true })
+        .trigger("mouseup", { force: true });
+    };
 
     it("is possible to rearrange parameters", function() {
       cy.server();

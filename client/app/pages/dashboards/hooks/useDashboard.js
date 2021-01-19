@@ -15,7 +15,6 @@ import ShareDashboardDialog from "../components/ShareDashboardDialog";
 import useFullscreenHandler from "../../../lib/hooks/useFullscreenHandler";
 import useRefreshRateHandler from "./useRefreshRateHandler";
 import useEditModeHandler from "./useEditModeHandler";
-import { policy } from "@/services/policy";
 
 export { DashboardStatusEnum } from "./useEditModeHandler";
 
@@ -40,7 +39,7 @@ function useDashboard(dashboardData) {
   const [refreshing, setRefreshing] = useState(false);
   const [gridDisabled, setGridDisabled] = useState(false);
   const globalParameters = useMemo(() => dashboard.getParametersDefs(), [dashboard]);
-  const canEditDashboard = !dashboard.is_archived && policy.canEdit(dashboard);
+  const canEditDashboard = !dashboard.is_archived && dashboard.can_edit;
   const isDashboardOwnerOrAdmin = useMemo(
     () =>
       !dashboard.is_archived &&

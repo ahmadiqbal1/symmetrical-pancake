@@ -15,7 +15,7 @@ export function QuerySourceDropdownItem({ dataSource, children }) {
 QuerySourceDropdownItem.propTypes = {
   dataSource: PropTypes.shape({
     name: PropTypes.string,
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    id: PropTypes.string,
     type: PropTypes.string,
   }).isRequired,
   children: PropTypes.element,

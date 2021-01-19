@@ -1,4 +1,4 @@
-import { includes, has, get, map, first, isFunction, isEmpty, startsWith } from "lodash";
+import { has, get, map, first, isFunction, isEmpty } from "lodash";
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import notification from "@/services/notification";
 import DatabricksDataSource from "@/services/databricks-data-source";
@@ -22,21 +22,6 @@ function getSchema(dataSource, databaseName, refresh = false) {
   return DatabricksDataSource.getDatabaseTables(dataSource, databaseName, refresh).catch(() => {
     notification.error(`Failed to load tables for ${databaseName}.`, "Please try again later.");
     return Promise.reject();
-  });
-}
-
-function addDisplayNameWithoutDatabaseName(schema, databaseName) {
-  if (!databaseName) {
-    return schema;
-  }
-  // add display name without {databaseName} + "."
-  return map(schema, table => {
-    const databaseNamePrefix = databaseName + ".";
-    let displayName = table.name;
-    if (startsWith(table.name, databaseNamePrefix)) {
-      displayName = table.name.slice(databaseNamePrefix.length);
-    }
-    return { ...table, displayName };
   });
 }
 
@@ -87,10 +72,7 @@ export default function useDatabricksSchema(dataSource, options = null, onOption
     [dataSource, currentDatabaseName]
   );
 
-  const schema = useMemo(() => {
-    const currentSchema = get(schemas, currentDatabaseName, []);
-    return addDisplayNameWithoutDatabaseName(currentSchema, currentDatabaseName);
-  }, [schemas, currentDatabaseName]);
+  const schema = useMemo(() => get(schemas, currentDatabaseName, []), [schemas, currentDatabaseName]);
 
   const refreshAll = useCallback(() => {
     if (!refreshing) {
@@ -150,20 +132,12 @@ export default function useDatabricksSchema(dataSource, options = null, onOption
       .then(data => {
         if (!isCancelled) {
           setDatabases(data);
-
-          // We set the database using this order:
-          // 1. Currently selected value.
-          // 2. Last used stored in localStorage.
-          // 3. default database.
-          // 4. first database in the list.
-          let lastUsedDatabase =
-            defaultDatabaseNameRef.current || localStorage.getItem(`lastSelectedDatabricksDatabase_${dataSource.id}`);
-
-          if (!lastUsedDatabase) {
-            lastUsedDatabase = includes(data, "default") ? "default" : first(data) || null;
-          }
-
-          setCurrentDatabaseName(lastUsedDatabase);
+          setCurrentDatabaseName(
+            defaultDatabaseNameRef.current ||
+              localStorage.getItem(`lastSelectedDatabricksDatabase_${dataSource.id}`) ||
+              first(data) ||
+              null
+          );
         }
       })
       .finally(() => {

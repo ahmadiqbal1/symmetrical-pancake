@@ -21,8 +21,6 @@ export interface EmptyStateProps<K = unknown> {
   illustration: string;
   illustrationPath?: string;
   helpMessage?: React.ReactNode;
-  closable?: boolean;
-  onClose?: () => void;
 
   onboardingMode?: boolean;
   showAlertStep?: boolean;
@@ -41,9 +39,8 @@ export interface StepProps {
   show: boolean;
   completed: boolean;
   url?: string;
-  urlTarget?: string;
-  urlText?: React.ReactNode;
-  text?: React.ReactNode;
+  urlText?: string;
+  text: string;
   onClick?: () => void;
 }
 

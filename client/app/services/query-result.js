@@ -271,10 +271,6 @@ class QueryResult {
     return this.getColumnNames().map(col => getColumnFriendlyName(col));
   }
 
-  getTruncated() {
-    return this.query_result.data ? this.query_result.data.truncated : null;
-  }
-
   getFilters() {
     if (!this.getColumns()) {
       return [];

@@ -1,13 +1,12 @@
 import React from "react";
 import Form from "antd/lib/form";
 import Input from "antd/lib/input";
-import Skeleton from "antd/lib/skeleton";
 import Radio from "antd/lib/radio";
 import DynamicComponent from "@/components/DynamicComponent";
 import { SettingsEditorPropTypes, SettingsEditorDefaultProps } from "../prop-types";
 
 export default function SAMLSettings(props) {
-  const { values, onChange, loading } = props;
+  const { values, onChange } = props;
 
   const onChangeEnabledStatus = e => {
     const updates = { auth_saml_enabled: !!e.target.value };
@@ -21,17 +20,13 @@ export default function SAMLSettings(props) {
     <DynamicComponent name="OrganizationSettings.SAMLSettings" {...props}>
       <h4>SAML</h4>
       <Form.Item label="SAML Enabled">
-        {loading ? (
-          <Skeleton title={{ width: 300 }} paragraph={false} active />
-        ) : (
-          <Radio.Group
-            onChange={onChangeEnabledStatus}
-            value={values.auth_saml_enabled && (values.auth_saml_type || "dynamic")}>
-            <Radio value={false}>Disabled</Radio>
-            <Radio value={"static"}>Enabled (Static)</Radio>
-            <Radio value={"dynamic"}>Enabled (Dynamic)</Radio>
-          </Radio.Group>
-        )}
+        <Radio.Group
+          onChange={onChangeEnabledStatus}
+          value={values.auth_saml_enabled && (values.auth_saml_type || "dynamic")}>
+          <Radio value={false}>Disabled</Radio>
+          <Radio value={"static"}>Enabled (Static)</Radio>
+          <Radio value={"dynamic"}>Enabled (Dynamic)</Radio>
+        </Radio.Group>
       </Form.Item>
       {values.auth_saml_enabled && (
         <>

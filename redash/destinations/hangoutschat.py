@@ -28,7 +28,6 @@ class HangoutsChat(BaseDestination):
                     "title": "Icon URL (32x32 or multiple, png format)",
                 },
             },
-            "secret": ["url"],
             "required": ["url"],
         }
 

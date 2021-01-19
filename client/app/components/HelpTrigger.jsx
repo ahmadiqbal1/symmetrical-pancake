@@ -133,14 +133,10 @@ export function helpTriggerWithTypes(types, allowedDomains = [], drawerClassName
       return helpTriggerType ? helpTriggerType[0] : this.props.href;
     };
 
-    openDrawer = e => {
-      // keep "open in new tab" behavior
-      if (!e.shiftKey && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        this.setState({ visible: true });
-        // wait for drawer animation to complete so there's no animation jank
-        setTimeout(() => this.loadIframe(this.getUrl()), 300);
-      }
+    openDrawer = () => {
+      this.setState({ visible: true });
+      // wait for drawer animation to complete so there's no animation jank
+      setTimeout(() => this.loadIframe(this.getUrl()), 300);
     };
 
     closeDrawer = event => {
@@ -174,14 +170,15 @@ export function helpTriggerWithTypes(types, allowedDomains = [], drawerClassName
                 </>
               ) : null
             }>
-            <Link
-              href={url || this.getUrl()}
-              className={className}
-              rel="noopener noreferrer"
-              target="_blank"
-              onClick={shouldRenderAsLink ? () => {} : this.openDrawer}>
-              {this.props.children}
-            </Link>
+            {shouldRenderAsLink ? (
+              <Link href={url || this.getUrl()} className={className} rel="noopener noreferrer" target="_blank">
+                {this.props.children}
+              </Link>
+            ) : (
+              <a onClick={this.openDrawer} className={className}>
+                {this.props.children}
+              </a>
+            )}
           </Tooltip>
           <Drawer
             placement="right"

@@ -17,7 +17,6 @@ class Slack(BaseDestination):
                 "icon_url": {"type": "string", "title": "Icon (URL)"},
                 "channel": {"type": "string", "title": "Channel"},
             },
-            "secret": ["url"]
         }
 
     @classmethod
